@@ -52,3 +52,51 @@ function joinProblems(problems, hostMap) {
         };
     });
 }
+
+// Sévérité active la plus haute → couleur du badge. -1 si aucun problème (RAS/vert).
+function worstSeverity(problems) {
+    var w = -1;
+    for (var i = 0; i < problems.length; i++)
+        if (problems[i].severity > w)
+            w = problems[i].severity;
+    return w;
+}
+
+// Compteur par niveau de sévérité. Les 6 clés (0-5) sont toujours présentes (0 inclus)
+// pour un rendu déterministe.
+function countsBySeverity(problems) {
+    var c = {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+    };
+    for (var i = 0; i < problems.length; i++) {
+        var s = problems[i].severity;
+        if (c[s] !== undefined)
+            c[s] += 1;
+    }
+    return c;
+}
+
+// Delta entre deux états (par eventid) → { added, resolved }. Fonction PURE de
+// (état précédent, état courant) : base des notifications (v0.2.0), testée sans notif.
+// `added` = présents dans curr mais pas prev ; `resolved` = présents dans prev mais pas
+// curr. L'ordre de chaque liste suit sa source.
+function diffProblems(prev, curr) {
+    var prevIds = {}, currIds = {}, i;
+    for (i = 0; i < prev.length; i++)
+        prevIds[prev[i].eventid] = true;
+    for (i = 0; i < curr.length; i++)
+        currIds[curr[i].eventid] = true;
+    return {
+        "added": curr.filter(function (p) {
+            return !prevIds[p.eventid];
+        }),
+        "resolved": prev.filter(function (p) {
+            return !currIds[p.eventid];
+        })
+    };
+}

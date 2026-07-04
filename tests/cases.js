@@ -12,6 +12,12 @@ function joinCase(input) {
     return Model.joinProblems(problems, hosts);
 }
 
+// Delta : la fixture porte deux états successifs (prev/curr, déjà en modèle de domaine) ;
+// le golden est { added, resolved }.
+function deltaCase(input) {
+    return Model.diffProblems(input.prev, input.curr);
+}
+
 var cases = [
     {
         "name": "problems-empty",
@@ -24,5 +30,17 @@ var cases = [
     {
         "name": "problems-multi",
         "transform": joinCase
+    },
+    {
+        "name": "delta-appeared",
+        "transform": deltaCase
+    },
+    {
+        "name": "delta-resolved",
+        "transform": deltaCase
+    },
+    {
+        "name": "delta-mixed",
+        "transform": deltaCase
     }
 ];

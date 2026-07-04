@@ -75,4 +75,40 @@ TestCase {
                 }], {});
         compare(joined[0].host, "");
     }
+
+    function test_worstSeverity() {
+        compare(Model.worstSeverity([]), -1); // RAS
+        compare(Model.worstSeverity([{
+                    "severity": 2
+                }, {
+                    "severity": 5
+                }, {
+                    "severity": 3
+                }]), 5);
+    }
+
+    function test_countsBySeverity() {
+        var c = Model.countsBySeverity([{
+                    "severity": 5
+                }, {
+                    "severity": 5
+                }, {
+                    "severity": 2
+                }]);
+        compare(c["5"], 2);
+        compare(c["2"], 1);
+        compare(c["0"], 0); // les 6 niveaux toujours présents
+        compare(c["4"], 0);
+    }
+
+    function test_diffProblems_noChange() {
+        var a = [{
+                "eventid": "1"
+            }, {
+                "eventid": "2"
+            }];
+        var d = Model.diffProblems(a, a);
+        compare(d.added.length, 0);
+        compare(d.resolved.length, 0);
+    }
 }

@@ -1,0 +1,11 @@
+{
+  "prev": [
+    { "eventid": "1", "host": "web01", "trigger": "A down", "severity": 3, "since": 100, "acknowledged": false, "suppressed": false },
+    { "eventid": "2", "host": "app01", "trigger": "B warn", "severity": 2, "since": 200, "acknowledged": false, "suppressed": false },
+    { "eventid": "3", "host": "db01", "trigger": "C crit", "severity": 5, "since": 300, "acknowledged": false, "suppressed": false }
+  ],
+  "curr": [
+    { "eventid": "1", "host": "web01", "trigger": "A down", "severity": 3, "since": 100, "acknowledged": false, "suppressed": false },
+    { "eventid": "2", "host": "app01", "trigger": "B warn", "severity": 2, "since": 200, "acknowledged": false, "suppressed": false }
+  ]
+}
