@@ -148,12 +148,10 @@ installé dans `~/.config/DankMaterialShell/plugins/Auspex/`. Il hérite du thè
 Hérité de DankMaterialShell (Material 3, Catppuccin Mocha) et aligné sur astropath. Les
 **valeurs durables** (palette, mapping de sévérité, typo, formes) sont figées ci-dessous.
 
-> **La direction visuelle du cockpit (layout pixel-perfect) n'est pas encore figée.**
-> Elle sera arrêtée par un **handoff design** (claude design) mené *après* v0.1.0, une
-> fois la forme du modèle gelée par les goldens — car la maquette doit afficher les
-> champs réels d'un problème. Le prototype HTML retenu vivra dans
-> `tmp/design_handoff_auspex/` (non commité) et ses valeurs durables seront recopiées
-> dans cette section. Cf. le séquencement dans PROCEDURE_PLANS.md.
+> **Direction visuelle figée : C — cockpit / radar.** Arrêtée par le handoff design
+> mené après v0.1.0 (forme du modèle gelée). Le prototype HTML retenu vit dans
+> `tmp/design_handoff_auspex/result/Auspex.dc.html` (non commité, détail pixel-perfect) ;
+> les valeurs durables sont recopiées ci-dessous pour survivre.
 
 ### Palette — Catppuccin Mocha
 
@@ -206,6 +204,70 @@ aucun problème). Chip de sévérité dans la liste = `background: rgba(couleur,
   `outline`. S'efface autour de la ligne active/survolée pour ne jamais la trancher.
 - Typo : **Inter** (UI), **JetBrains Mono** (compteurs/heures/host), **Material Symbols
   Rounded** (icônes, fill 0).
+
+### Surfaces translucides & animations
+
+- Fond popup : `rgba(30,30,46,.94)` + `backdrop-filter: blur(18px)`.
+- Bandeaux en-tête / pied : `rgba(24,24,37,.55–.6)`. Hover de ligne : `rgba(69,71,90,.42)`.
+- Tint d'accent (focus, sélection, filtre actif) : Mauve `rgba(203,166,247,.14)`, bord
+  `rgba(203,166,247,.55)`.
+- Animations : `popIn` .18s (ouverture popup) · `fadeUp` .4s stagger 55ms×index (items) ·
+  `livedot` 2s (point live) · `spin` .8s (poll) · `pulse` 1.8s (badge nouveau problème,
+  couleur = sévérité) · `shimmer` 1.4s (skeleton de chargement) · transition largeur .5s
+  (barre de résumé).
+
+### Direction visuelle — C (cockpit / radar)
+
+Un mini-tableau de supervision. Layout de référence (le prototype HTML détaille le
+pixel-perfect) :
+
+- **Popup ~568px**, rayon 12, fond translucide + blur, ombre unique sous le popup.
+- **En-tête télémétrie** (fond `rgba(24,24,37,.6)`) :
+  - Ligne 1 : cog `radar` Mauve, wordmark `AUSPEX` (mono 12px/700, letter-spacing .16em),
+    `// telemetry` (mono, discret), puis à droite l'**état de connexion** (point + libellé
+    `LIVE` / `poll 30 s`) et le bouton **refresh** (tourne pendant le poll).
+  - **Barre de résumé** : grand compteur total (mono 20px) + barre segmentée 12px
+    (`counts` par sévérité, largeur ∝ compte, couleur = sévérité, transition douce). L'état
+    global se lit d'un regard — c'est la signature de la direction C.
+  - **Légende** : une entrée par sévérité (carré 8px + label + compteur) ; opacité 0.4 si
+    compte nul. La légende est **cliquable** et sert de filtre par sévérité.
+- **Liste** (scroll interne) : lignes ~50px. De gauche à droite : **point de sévérité**
+  (9px, couleur = sévérité, halo `0 0 0 4px rgba(couleur,.16)`), **host** (mono, ancré,
+  min 66px), **trigger** (ellipsé, flex), icônes d'état (`task_alt` si acquitté,
+  `notifications_off` si supprimé), **chip de sévérité**, **âge** (mono, aligné à droite).
+  Une ligne **acquittée ou supprimée** est atténuée (texte `#7f849c`). Au survol, une
+  **rangée de quick-links** apparaît à droite (fondu) : `open_in_new` (frontend Zabbix),
+  `terminal` (SSH host), `show_chart` (graph) — délégation sortante, **non-mutante**
+  (compatible lecture seule v1).
+- **Pied** : rappel des appels (`problem.get · trigger.get`) et cadence
+  (`last poll 12 s · next in 18 s`).
+
+Tri par défaut : **sévérité décroissante, puis âge**.
+
+### Widget de barre (états)
+
+Pièce ~38px, fond `rgba(24,24,37,.92)`, bord `#313244`, rayon 14, icône `radar`.
+
+- **Problèmes actifs** : boîte d'icône tintée de la **couleur de la pire sévérité**,
+  **badge** rond de cette couleur portant le compteur ; à l'apparition d'un **nouveau**
+  problème, anneau `pulse`.
+- **RAS** : icône Green discrète (`rgba(166,227,161,.1)`), **pas de badge**, petit point
+  live vert. Se lit d'un coup d'œil comme « tout va bien ».
+
+### États annexes
+
+- **Vide / zen** : icône `shield` 62px `rgba(166,227,161,.28)`, titre
+  « Aucun signal hostile. », sous-texte « Tous les systèmes nominaux. Balayage actif… ».
+- **Chargement (1er poll)** : en-tête en `polling` (spinner + `problem.get…`), corps en
+  **skeleton** shimmer (barre de sévérité + lignes grises).
+- **Erreur** : bandeau rouge `rgba(243,139,168,.08)` bord `rgba(243,139,168,.3)`, icône
+  `error`, « Zabbix injoignable — nouvelle tentative dans 30 s. Affichage du dernier état
+  connu. », bouton **Réessayer**. **Token refusé** (`unauthorized`) : même style, icône
+  `lock`, « Vérifier l'API token (utilisateur read-only) ». Bouton refresh toujours présent.
+- **Notification desktop** : carte tintée de la sévérité, icône, titre `host · trigger`,
+  sous-titre `sévérité · âge`. Regroupement si plusieurs `added` d'un coup
+  (« 3 nouveaux problèmes · 1 Disaster · 2 High »). Déclenchée **uniquement** sur le delta
+  `added`, jamais de re-notification d'un problème déjà connu.
 
 ---
 
