@@ -4,6 +4,21 @@ La couche données reste golden-testée (`just ci`). v0.2.0 ajoute du QML Quicks
 HTTP réel : **non automatisables ici** (pas de DMS/Wayland ni d'instance Zabbix dans le
 dev shell). À exécuter sur la machine cible.
 
+## Environnement de dev (sans serveur Zabbix ni home-manager)
+
+Deux terminaux, dans le dev shell (`nix develop`) :
+
+```bash
+just mock            # serveur mock d'API Zabbix (scenario ok) sur :8384
+#   scénarios : just mock empty | just mock unauthorized | just mock error
+just dev-bar         # instance DMS isolée chargeant le worktree comme « Auspex (dev) »
+```
+
+Dans l'instance dev : activer « Auspex (dev) » (Settings → Plugins), régler l'URL sur
+`http://127.0.0.1:8384/api_jsonrpc.php` et un token quelconque. Éditer `src/`, relancer
+`just dev-bar` (cache isolé, symlink live). Cela permet de dérouler la plupart des tests
+ci-dessous sans toucher au DMS quotidien ni à une instance de prod.
+
 ## Installation & activation
 
 - [ ] Ajouter le module home-manager (`inputs.auspex` + `programs.auspex.enable = true`),

@@ -24,8 +24,21 @@
       # Module home-manager : installe auspex comme plugin DankMaterialShell.
       flake.homeModules.default = import ./nix/hm-module.nix;
 
-      perSystem = {pkgs, ...}: {
+      perSystem = {pkgs, ...}: let
+        # Launcher d'instance DMS isolée pour tester le worktree (cf. scripts/auspex-dev).
+        auspex-dev = pkgs.writeShellApplication {
+          name = "auspex-dev";
+          runtimeInputs = [pkgs.jq];
+          text = builtins.readFile ./scripts/auspex-dev;
+        };
+      in {
         formatter = pkgs.alejandra;
+
+        packages.dev-bar = auspex-dev;
+        apps.dev-bar = {
+          type = "app";
+          program = "${auspex-dev}/bin/auspex-dev";
+        };
 
         devShells.default = pkgs.mkShell {
           name = "auspex";
@@ -37,6 +50,10 @@
 
             # Runtime du service (poll HTTP de l'API Zabbix)
             curl
+
+            # Dev : mock d'API Zabbix (just mock) + instance DMS isolée (just dev-bar)
+            python3
+            jq
 
             # Outillage projet
             just
