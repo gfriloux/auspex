@@ -1,0 +1,56 @@
+{
+  "problems": {
+    "jsonrpc": "2.0",
+    "result": [
+      {
+        "eventid": "30",
+        "objectid": "103",
+        "name": "Disk space critical on db01",
+        "severity": "5",
+        "clock": "1700000300",
+        "r_eventid": "0",
+        "acknowledged": "1",
+        "suppressed": "0"
+      },
+      {
+        "eventid": "20",
+        "objectid": "102",
+        "name": "Service down on app01",
+        "severity": "3",
+        "clock": "1700000200",
+        "r_eventid": "0",
+        "acknowledged": "0",
+        "suppressed": "1"
+      },
+      {
+        "eventid": "10",
+        "objectid": "199",
+        "name": "Orphan trigger problem",
+        "severity": "2",
+        "clock": "1700000100",
+        "r_eventid": "0",
+        "acknowledged": "0",
+        "suppressed": "0"
+      }
+    ],
+    "id": 1
+  },
+  "triggers": {
+    "jsonrpc": "2.0",
+    "result": [
+      {
+        "triggerid": "103",
+        "hosts": [
+          { "hostid": "10103", "name": "db01" }
+        ]
+      },
+      {
+        "triggerid": "102",
+        "hosts": [
+          { "hostid": "10102", "name": "app01" }
+        ]
+      }
+    ],
+    "id": 1
+  }
+}

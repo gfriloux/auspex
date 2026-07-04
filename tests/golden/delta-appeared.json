@@ -1,0 +1,14 @@
+{
+  "added": [
+    {
+      "eventid": "3",
+      "host": "db01",
+      "trigger": "C crit",
+      "severity": 5,
+      "since": 300,
+      "acknowledged": false,
+      "suppressed": false
+    }
+  ],
+  "resolved": []
+}

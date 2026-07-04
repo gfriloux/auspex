@@ -1,0 +1,29 @@
+[
+  {
+    "eventid": "30",
+    "host": "db01",
+    "trigger": "Disk space critical on db01",
+    "severity": 5,
+    "since": 1700000300,
+    "acknowledged": true,
+    "suppressed": false
+  },
+  {
+    "eventid": "20",
+    "host": "app01",
+    "trigger": "Service down on app01",
+    "severity": 3,
+    "since": 1700000200,
+    "acknowledged": false,
+    "suppressed": true
+  },
+  {
+    "eventid": "10",
+    "host": "",
+    "trigger": "Orphan trigger problem",
+    "severity": 2,
+    "since": 1700000100,
+    "acknowledged": false,
+    "suppressed": false
+  }
+]
