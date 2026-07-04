@@ -1,0 +1,12 @@
+{
+  "problems": {
+    "jsonrpc": "2.0",
+    "result": [],
+    "id": 1
+  },
+  "triggers": {
+    "jsonrpc": "2.0",
+    "result": [],
+    "id": 1
+  }
+}

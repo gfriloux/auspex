@@ -1,0 +1,30 @@
+{
+  "problems": {
+    "jsonrpc": "2.0",
+    "result": [
+      {
+        "eventid": "12345",
+        "objectid": "101",
+        "name": "High CPU load on web01",
+        "severity": "4",
+        "clock": "1699999999",
+        "r_eventid": "0",
+        "acknowledged": "0",
+        "suppressed": "0"
+      }
+    ],
+    "id": 1
+  },
+  "triggers": {
+    "jsonrpc": "2.0",
+    "result": [
+      {
+        "triggerid": "101",
+        "hosts": [
+          { "hostid": "10101", "name": "web01" }
+        ]
+      }
+    ],
+    "id": 1
+  }
+}

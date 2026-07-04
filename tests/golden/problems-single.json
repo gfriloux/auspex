@@ -1,0 +1,11 @@
+[
+  {
+    "eventid": "12345",
+    "host": "web01",
+    "trigger": "High CPU load on web01",
+    "severity": 4,
+    "since": 1699999999,
+    "acknowledged": false,
+    "suppressed": false
+  }
+]
