@@ -96,10 +96,11 @@ installé dans `~/.config/DankMaterialShell/plugins/Auspex/`. Il hérite du thè
   `trigger.get`, `host.get`…), fonctions pures. Exécutés par `src/view/Zabbix.qml`
   (service : HTTP `POST` vers `api_jsonrpc.php`, header `Authorization: Bearer`, gestion
   d'erreur/timeout).
-- `model` → `src/model/problems.js` (`parseProblems`, `parseHosts`, jointure
-  trigger→host, calcul `worstSeverity`/`counts`, `diffProblems` pour le delta) +
-  `format.js` (`relativeTime`, libellé de sévérité). Pur, testé par goldens (`tests/`,
-  `just test` / `just bless`).
+- `model` → `src/model/problems.js` (`parseProblems`, `parseTriggers` = map
+  triggerid→host, `joinProblems`, `worstSeverity`, `countsBySeverity`, `diffProblems`
+  pour le delta) + `format.js` (`relativeTime`, `severityLabel`) — ces helpers de
+  présentation restent **hors du modèle golden** (dérivables / dépendants de « maintenant »).
+  Pur, testé par goldens + inline (`tests/`, `just test` / `just bless`).
 - `view` → `src/view/` : `AuspexWidget` (barre + badge), `Cockpit` (popout : en-tête
   état de connexion, liste des problèmes, filtres sévérité, états vide/erreur/chargement),
   `Settings` (config : URL de l'instance, token, intervalle de poll, filtres). Thème = DMS.
