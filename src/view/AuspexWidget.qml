@@ -75,6 +75,23 @@ PluginComponent {
             // Horloge pour rafraîchir « il y a N min ».
             property double now: Date.now()
 
+            // Largeur de la colonne host = celle du nom le plus long (auto-fit), bornée.
+            // Même valeur pour toutes les lignes → alignement, sans gaspiller d'espace.
+            TextMetrics {
+                id: hostMetrics
+                font.pixelSize: Theme.fontSizeSmall
+                font.bold: true
+            }
+            readonly property real hostColWidth: {
+                let w = 0;
+                for (let i = 0; i < svc.problems.length; i++) {
+                    hostMetrics.text = svc.problems[i].host;
+                    if (hostMetrics.advanceWidth > w)
+                        w = hostMetrics.advanceWidth;
+                }
+                return Math.min(Math.max(w + 4, 48), 360);
+            }
+
             headerText: "AUSPEX"
             detailsText: {
                 const s = svc.connectionStatus;
@@ -153,9 +170,9 @@ PluginComponent {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 10
 
-                            // Colonne host à largeur fixe (hôtes ~40 car.) → tout s'aligne.
+                            // Colonne host auto-ajustée au nom le plus long (bornée) → alignée.
                             StyledText {
-                                Layout.preferredWidth: 300
+                                Layout.preferredWidth: cockpit.hostColWidth
                                 text: del.modelData.host
                                 elide: Text.ElideRight
                                 font.pixelSize: Theme.fontSizeSmall

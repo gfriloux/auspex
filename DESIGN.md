@@ -223,9 +223,10 @@ pixel-perfect) :
 
 - **Popup large** (≥ ~680px ; la liste minimale v0.2.0 est à 820px). L'environnement cible
   a des **noms d'hôtes longs (~40 caractères)** et des descriptions de trigger longues : la
-  largeur doit les accueillir. Colonnes à **largeur fixe** (host, description, sévérité,
-  âge) → alignement tabulaire d'une ligne à l'autre. Rayon 12, fond translucide + blur,
-  ombre unique sous le popup.
+  largeur doit les accueillir. Rendu **tabulaire aligné** : la colonne host s'**auto-ajuste
+  au nom le plus long** de la liste (mesure `TextMetrics`, bornée), sévérité et âge en
+  largeur fixe, description au reste — toutes les lignes partagent les mêmes colonnes.
+  Rayon 12, fond translucide + blur, ombre unique sous le popup.
 - **En-tête télémétrie** (fond `rgba(24,24,37,.6)`) :
   - Ligne 1 : cog `radar` Mauve, wordmark `AUSPEX` (mono 12px/700, letter-spacing .16em),
     `// telemetry` (mono, discret), puis à droite l'**état de connexion** (point + libellé
