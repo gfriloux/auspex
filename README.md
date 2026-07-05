@@ -84,8 +84,8 @@ réglages pour renseigner l'URL et le token.
    auto-signé.
 
 auspex est **lecture seule** : le token n'a besoin d'aucun droit d'écriture. Il est envoyé
-en header `Authorization: Bearer` via un fichier de config curl sous `$XDG_RUNTIME_DIR`
-(jamais en ligne de commande).
+par curl en header `Authorization: Bearer` (visible du seul utilisateur courant dans la
+liste des processus — acceptable pour un token read-only ; un durcissement reste possible).
 
 ## Licence
 

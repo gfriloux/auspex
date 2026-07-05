@@ -40,11 +40,13 @@ home-manager. Le `.dc.html` (réf pixel-perfect) est dans `tmp/` (non commité).
 
 1. **HTTP via `curl` + `Process`** (comme astropath lance `notmuch`). Gère les certifs
    auto-signés (toggle `insecure` → `-k`) et les timeouts, contrairement à `XMLHttpRequest`.
-2. **Token jamais en argv.** Le service écrit un fichier de config curl (`--config`) en
-   `$XDG_RUNTIME_DIR/auspex/` (mode 0600) contenant `url` + `header = "Authorization:
-   Bearer …"`, régénéré quand les réglages changent. argv = `curl -s --config <cfg> -d
-   <body>` : le corps (sans secret) peut être en argv, **le token non**. Honore l'invariant
-   « token = secret » (DESIGN inv. 3).
+2. **Token en header curl (`-H`).** ~~Fichier de config `--config` sous `$XDG_RUNTIME_DIR`~~
+   — approche abandonnée en cours de route : trop fragile dans le contexte Quickshell
+   (timing d'écriture `FileView`, `Quickshell.env`) → `curl: option --config: error reading
+   a file`. Le service passe donc `-H "Authorization: Bearer …"` directement. Le token
+   n'apparaît que dans l'argv du process curl (visible du seul utilisateur courant),
+   acceptable pour un token **read-only** ; durcissement possible plus tard sans changer
+   l'interface. Le token reste hors des couches `query`/`model` et des fixtures (DESIGN inv. 3).
 3. **Orchestration deux appels dans le service** : problem.get → collecte des objectid
    (triggerids) → trigger.get(selectHosts) → `Model.joinProblems`. Puis `worstSeverity` /
    `countsBySeverity`. Le service est de la *glu* : la logique pure testée vit dans

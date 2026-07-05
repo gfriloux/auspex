@@ -55,13 +55,11 @@ ci-dessous sans toucher au DMS quotidien ni à une instance de prod.
 
 Ces choix suivent la doc/les patterns astropath mais n'ont pas pu être exécutés ici :
 
-- [ ] `Quickshell.env("XDG_RUNTIME_DIR")` renvoie bien le dossier runtime (sinon fallback
-      `/tmp`). Le fichier `…/auspex/curl.cfg` est créé en **0700**, contient l'URL + le
-      header Bearer, et **le token n'apparaît pas dans `ps`** (`ps aux | grep curl`).
-- [ ] Écriture impérative de `FileView` (`cfgFile.path = …; cfgFile.setText(…)`) fonctionne
-      dans le contexte plugin (le poll part après le petit Timer de 60 ms).
 - [ ] `Process` enchaîne bien problem.get puis trigger.get (le 2e dépend du 1er) ; la
-      jointure host s'affiche correctement.
+      jointure host s'affiche correctement. Le token est passé en `-H` (visible dans `ps`
+      pour l'utilisateur courant — connu et accepté ; durcissement éventuel plus tard).
+- [ ] `PopoutComponent` dimensionne bien le popout (en-tête AUSPEX + statut, contenu non
+      vide) — pas de fenêtre 0×0.
 - [ ] Composants DMS résolus à l'exécution : `PluginComponent`, `DankIcon`, `StyledText`,
       `StyledRect`, `PluginSettings`, `StringSetting`, `SliderSetting`, `ToggleSetting`.
 

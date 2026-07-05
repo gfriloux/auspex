@@ -69,100 +69,61 @@ PluginComponent {
 
     // ---- Popout : liste minimale des problèmes (le cockpit C = v0.3.0) ----
     popoutContent: Component {
-        Rectangle {
-            id: popout
-            color: "#1e1e2e"
-            radius: 12
+        PopoutComponent {
+            id: cockpit
 
-            readonly property bool errored: svc.connectionStatus === "error" || svc.connectionStatus === "unauthorized"
+            // Horloge pour rafraîchir « il y a N min ».
+            property double now: Date.now()
 
-            Column {
-                anchors.fill: parent
-                spacing: 0
+            headerText: "AUSPEX"
+            detailsText: {
+                const s = svc.connectionStatus;
+                if (s === "live")
+                    return root.problemCount + " problème(s) actif(s)";
+                if (s === "polling")
+                    return "interrogation…";
+                if (s === "unauthorized")
+                    return "token refusé — vérifier l'API token (read-only)";
+                if (s === "error")
+                    return svc.errorMessage;
+                return "non configuré — renseigner URL + token";
+            }
+            showCloseButton: true
 
-                // En-tête : wordmark + état de connexion.
-                Rectangle {
-                    width: parent.width
-                    height: 40
-                    color: "#181825"
+            Timer {
+                interval: 30000
+                running: true
+                repeat: true
+                onTriggered: cockpit.now = Date.now()
+            }
 
-                    Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 8
+            Item {
+                width: parent.width
+                height: root.popoutHeight - cockpit.headerHeight - cockpit.detailsHeight - Theme.spacingXL
 
-                        StyledText {
-                            text: "AUSPEX"
-                            font.pixelSize: Theme.fontSizeSmall
-                            font.bold: true
-                            color: "#cdd6f4"
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Rectangle {
-                            width: 7
-                            height: 7
-                            radius: 3.5
-                            anchors.verticalCenter: parent.verticalCenter
-                            color: svc.connectionStatus === "live" ? "#a6e3a1" : (svc.connectionStatus === "polling" ? "#cba6f7" : "#f38ba8")
-                        }
-                        StyledText {
-                            text: svc.connectionStatus
-                            font.pixelSize: Theme.fontSizeSmall
-                            color: "#a6adc8"
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-                }
-
-                // Bandeau d'erreur (best-effort : la liste reste visible en dessous).
-                Rectangle {
-                    width: parent.width
-                    height: 34
-                    visible: popout.errored
-                    color: "#2a1e28"
-
-                    StyledText {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: parent.width - 28
-                        elide: Text.ElideRight
-                        text: svc.errorMessage
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: "#f38ba8"
-                    }
-                }
-
-                // État vide (aucun problème).
-                Item {
-                    width: parent.width
-                    height: 140
+                // État vide (aucun problème connu).
+                Column {
+                    anchors.centerIn: parent
+                    spacing: Theme.spacingS
                     visible: root.problemCount === 0
 
-                    Column {
-                        anchors.centerIn: parent
-                        spacing: 8
-
-                        DankIcon {
-                            name: "shield"
-                            size: 44
-                            color: "#3f5a44"
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
-                        StyledText {
-                            text: "Aucun signal hostile."
-                            font.pixelSize: Theme.fontSizeLarge
-                            color: "#cdd6f4"
-                            anchors.horizontalCenter: parent.horizontalCenter
-                        }
+                    DankIcon {
+                        name: "shield"
+                        size: 44
+                        color: "#3f5a44"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                    StyledText {
+                        text: "Aucun signal hostile."
+                        font.pixelSize: Theme.fontSizeLarge
+                        color: "#cdd6f4"
+                        anchors.horizontalCenter: parent.horizontalCenter
                     }
                 }
 
                 // Liste des problèmes (ordre du service = sévérité↓ via la query).
                 ListView {
-                    width: parent.width
-                    height: root.popoutHeight - 40 - (popout.errored ? 34 : 0)
+                    anchors.fill: parent
                     visible: root.problemCount > 0
                     clip: true
                     model: svc.problems
@@ -230,7 +191,7 @@ PluginComponent {
                                 }
                             }
                             StyledText {
-                                text: Format.relativeTime(del.modelData.since, Date.now())
+                                text: Format.relativeTime(del.modelData.since, cockpit.now)
                                 font.pixelSize: Theme.fontSizeSmall
                                 color: "#a6adc8"
                             }
