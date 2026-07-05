@@ -221,7 +221,10 @@ aucun problème). Chip de sévérité dans la liste = `background: rgba(couleur,
 Un mini-tableau de supervision. Layout de référence (le prototype HTML détaille le
 pixel-perfect) :
 
-- **Popup ~568px**, rayon 12, fond translucide + blur, ombre unique sous le popup.
+- **Popup large** (≥ ~680px ; la liste minimale v0.2.0 est à 760px). L'environnement cible
+  a des **noms d'hôtes longs (~40 caractères)** et des descriptions de trigger longues : la
+  largeur et la colonne host doivent les accueillir (host adaptatif, description au large).
+  Rayon 12, fond translucide + blur, ombre unique sous le popup.
 - **En-tête télémétrie** (fond `rgba(24,24,37,.6)`) :
   - Ligne 1 : cog `radar` Mauve, wordmark `AUSPEX` (mono 12px/700, letter-spacing .16em),
     `// telemetry` (mono, discret), puis à droite l'**état de connexion** (point + libellé

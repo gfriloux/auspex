@@ -154,7 +154,8 @@ PluginComponent {
                             spacing: 10
 
                             StyledText {
-                                Layout.preferredWidth: 66
+                                // Largeur adaptative : suit le nom, plafonnée (hôtes ~40 car.).
+                                Layout.maximumWidth: 340
                                 text: del.modelData.host
                                 elide: Text.ElideRight
                                 font.pixelSize: Theme.fontSizeSmall
@@ -208,6 +209,6 @@ PluginComponent {
             }
         }
     }
-    popoutWidth: 440
-    popoutHeight: 520
+    popoutWidth: 760
+    popoutHeight: 560
 }
