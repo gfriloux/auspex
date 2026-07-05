@@ -40,3 +40,14 @@ test:
 # Régénère les goldens depuis les fixtures (transform courant). Relire le diff ensuite.
 bless:
     QML_XHR_ALLOW_FILE_READ=1 quickshell -p bless.qml
+
+# Serveur mock d'API Zabbix pour le dev (aucun serveur réel requis). scenario :
+# ok | empty | unauthorized | error. Régler l'URL du plugin sur
+# http://127.0.0.1:<port>/api_jsonrpc.php.
+mock scenario="ok" port="8384":
+    @python3 scripts/zabbix-mock.py {{ port }} {{ scenario }}
+
+# Lance une instance DMS *isolée* chargeant le worktree comme plugin « Auspex (dev) »,
+# sans toucher au DMS quotidien. Combiner avec `just mock` dans un autre terminal.
+dev-bar:
+    @scripts/auspex-dev "{{ justfile_directory() }}"

@@ -111,4 +111,35 @@ TestCase {
         compare(d.added.length, 0);
         compare(d.resolved.length, 0);
     }
+
+    function test_severityColor() {
+        compare(Format.severityColor(5), "#f38ba8"); // Disaster
+        compare(Format.severityColor(0), "#6c7086"); // Not classified
+        compare(Format.severityColor(2), "#f9e2af"); // Warning
+        compare(Format.severityColor(-1), "#a6e3a1"); // RAS → vert
+        compare(Format.severityColor(9), "#a6e3a1"); // hors plage → vert
+    }
+
+    function test_rpcError() {
+        compare(Model.rpcError({
+            "result": []
+        }), null);
+        var g = Model.rpcError({
+            "error": {
+                "code": -32602,
+                "message": "Invalid params.",
+                "data": "Cannot read severities."
+            }
+        });
+        verify(g.message.indexOf("Invalid params.") !== -1);
+        compare(g.unauthorized, false);
+        var a = Model.rpcError({
+            "error": {
+                "code": -32602,
+                "message": "Not authorised.",
+                "data": "Session terminated, re-login, please."
+            }
+        });
+        compare(a.unauthorized, true);
+    }
 }

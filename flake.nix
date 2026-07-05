@@ -21,11 +21,24 @@
         "aarch64-linux"
       ];
 
-      # Le module home-manager (installation comme plugin DMS) arrive en v0.2.0,
-      # avec la surface QML. v0.1.0 = couche données pure, testable sans UI.
+      # Module home-manager : installe auspex comme plugin DankMaterialShell.
+      flake.homeModules.default = import ./nix/hm-module.nix;
 
-      perSystem = {pkgs, ...}: {
+      perSystem = {pkgs, ...}: let
+        # Launcher d'instance DMS isolée pour tester le worktree (cf. scripts/auspex-dev).
+        auspex-dev = pkgs.writeShellApplication {
+          name = "auspex-dev";
+          runtimeInputs = [pkgs.jq];
+          text = builtins.readFile ./scripts/auspex-dev;
+        };
+      in {
         formatter = pkgs.alejandra;
+
+        packages.dev-bar = auspex-dev;
+        apps.dev-bar = {
+          type = "app";
+          program = "${auspex-dev}/bin/auspex-dev";
+        };
 
         devShells.default = pkgs.mkShell {
           name = "auspex";
@@ -34,6 +47,13 @@
             quickshell
             qt6.qtdeclarative # qmllint, qmlformat, qmltestrunner
             qt6.qtbase
+
+            # Runtime du service (poll HTTP de l'API Zabbix)
+            curl
+
+            # Dev : mock d'API Zabbix (just mock) + instance DMS isolée (just dev-bar)
+            python3
+            jq
 
             # Outillage projet
             just

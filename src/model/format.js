@@ -6,8 +6,18 @@
 
 var SEVERITY_LABELS = ["Not classified", "Information", "Warning", "Average", "High", "Disaster"];
 
+// Mapping sévérité → couleur (DESIGN.md, impératif). Escalade monotone.
+var SEVERITY_COLORS = ["#6c7086", "#89b4fa", "#f9e2af", "#fab387", "#eba0ac", "#f38ba8"];
+var RAS_COLOR = "#a6e3a1"; // Green — aucun problème / worstSeverity = -1.
+
 function severityLabel(n) {
     return SEVERITY_LABELS[n] !== undefined ? SEVERITY_LABELS[n] : "Unknown";
+}
+
+// Couleur d'une sévérité 0-5 ; RAS (-1 ou hors plage) → vert. Pilote le badge de barre
+// (severityColor(worstSeverity)) et les chips/accents.
+function severityColor(n) {
+    return SEVERITY_COLORS[n] !== undefined ? SEVERITY_COLORS[n] : RAS_COLOR;
 }
 
 // clock Zabbix = epoch en SECONDES ; now = millisecondes (Date.now()).

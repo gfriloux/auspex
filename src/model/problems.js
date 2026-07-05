@@ -9,6 +9,24 @@ function bool(s) {
     return s === "1" || s === 1 || s === true;
 }
 
+// Réponse JSON-RPC → erreur applicative ou null. Zabbix renvoie
+// { error: { code, message, data } }. `unauthorized` distingue un token/permission
+// refusé (→ connectionStatus 'unauthorized') d'une erreur générique.
+function rpcError(res) {
+    if (!res || !res.error)
+        return null;
+    var e = res.error;
+    var msg = [e.message, e.data].filter(function (x) {
+        return x;
+    }).join(" ").trim();
+    if (!msg)
+        msg = "Erreur JSON-RPC " + (e.code !== undefined ? e.code : "");
+    return {
+        "message": msg,
+        "unauthorized": /authori|re-login|session terminated|access denied|permission den|not permitted/i.test(msg)
+    };
+}
+
 // Réponse problem.get → problèmes partiels (sans host, à joindre). Conserve l'ordre
 // renvoyé par Zabbix (tri déterministe côté query). objectid = triggerid.
 function parseProblems(res) {
