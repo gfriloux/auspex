@@ -21,16 +21,17 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 # Scénario : (host, trigger, severity, age_seconds, acknowledged, suppressed) par triggerid.
+# Noms d'hôtes longs représentatifs (~30-40 car.) pour un preview réaliste de l'alignement.
 SCENARIO = [
-    # eventid, triggerid, host,      trigger,                            sev, age,     ack, supp
-    ("e1", "t101", "db01", "Disk space critical (/var 96%)", 5, 240, False, False),
-    ("e2", "t102", "web01", "High CPU load (load 12.4)", 4, 720, False, False),
-    ("e3", "t103", "web02", "High CPU load (load 9.1)", 4, 720, True, False),
-    ("e4", "t104", "app01", "Service nginx down", 3, 3600, False, True),
-    ("e5", "t105", "fw01", "Interface eth1 high traffic", 2, 10800, False, False),
-    ("e6", "t106", "switch3", "Port flapping detected", 2, 21600, True, False),
-    ("e7", "t107", "mail01", "Certificate expires in 7 days", 1, 172800, False, False),
-    ("e8", "t108", "sensor7", "Unclassified event", 0, 432000, False, False),
+    # eventid, triggerid, host,                                     trigger,                        sev, age,     ack, supp
+    ("e1", "t101", "srv-prod-db-01.dc2.example.internal", "Disk space critical (/var at 96%)", 5, 240, False, False),
+    ("e2", "t102", "web-frontend-prod-01.dc1.example.net", "High CPU load (load average 12.4)", 4, 720, False, False),
+    ("e3", "t103", "web-frontend-prod-02.dc1.example.net", "High CPU load (load average 9.1)", 4, 720, True, False),
+    ("e4", "t104", "app-backend-nginx-03.dc2.example.net", "Service nginx is not running", 3, 3600, False, True),
+    ("e5", "t105", "fw-edge-gw-01.dc1.example.internal", "Interface eth1 inbound traffic high", 2, 10800, False, False),
+    ("e6", "t106", "sw-core-access-03.dc2.example.net", "Port Gi0/3 flapping detected", 2, 21600, True, False),
+    ("e7", "t107", "mail-relay-mx1.dc1.example.net", "TLS certificate expires in 7 days", 1, 172800, False, False),
+    ("e8", "t108", "sensor-env-rack07.dc3.example.internal", "Unclassified event on channel 2", 0, 432000, False, False),
 ]
 
 
