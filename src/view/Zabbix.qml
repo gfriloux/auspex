@@ -173,6 +173,7 @@ QtObject {
         interval: root.intervalMs
         running: root.configured
         repeat: true
+        triggeredOnStart: true // premier poll immédiat, sans attendre l'intervalle
         onTriggered: root.poll()
     }
 

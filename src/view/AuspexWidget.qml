@@ -169,9 +169,10 @@ PluginComponent {
                                 font.pixelSize: Theme.fontSizeSmall
                                 color: del.muted ? "#7f849c" : "#cdd6f4"
                             }
+                            // Colonne sévérité à largeur fixe → chips alignés verticalement.
                             Rectangle {
                                 Layout.preferredHeight: 20
-                                Layout.preferredWidth: chipText.implicitWidth + 16
+                                Layout.preferredWidth: 112
                                 radius: 6
                                 color: "transparent"
 
@@ -191,7 +192,10 @@ PluginComponent {
                                     color: del.sevColor
                                 }
                             }
+                            // Colonne âge à largeur fixe, alignée à droite.
                             StyledText {
+                                Layout.preferredWidth: 56
+                                horizontalAlignment: Text.AlignRight
                                 text: Format.relativeTime(del.modelData.since, cockpit.now)
                                 font.pixelSize: Theme.fontSizeSmall
                                 color: "#a6adc8"
