@@ -153,15 +153,16 @@ PluginComponent {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 10
 
+                            // Colonne host à largeur fixe (hôtes ~40 car.) → tout s'aligne.
                             StyledText {
-                                // Largeur adaptative : suit le nom, plafonnée (hôtes ~40 car.).
-                                Layout.maximumWidth: 340
+                                Layout.preferredWidth: 300
                                 text: del.modelData.host
                                 elide: Text.ElideRight
                                 font.pixelSize: Theme.fontSizeSmall
                                 font.bold: true
                                 color: del.muted ? "#7f849c" : "#cdd6f4"
                             }
+                            // Description : remplit le reste → largeur constante (colonnes fixes).
                             StyledText {
                                 Layout.fillWidth: true
                                 text: del.modelData.trigger
@@ -213,6 +214,6 @@ PluginComponent {
             }
         }
     }
-    popoutWidth: 760
+    popoutWidth: 820
     popoutHeight: 560
 }
