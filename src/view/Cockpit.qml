@@ -21,6 +21,19 @@ PopoutComponent {
 
     readonly property int problemCount: service ? service.problems.length : 0
 
+    // Filtre par sévérité, côté vue (n'affecte ni le service ni la barre de résumé) :
+    // un booléen par sévérité 0-5, toutes actives par défaut. La légende toggle ces valeurs.
+    property var active: [true, true, true, true, true, true]
+    function toggleSeverity(s) {
+        let a = active.slice();
+        a[s] = !a[s];
+        active = a;
+    }
+    // Problèmes après filtre (l'ordre sévérité↓ puis âge du service est préservé).
+    readonly property var visibleProblems: {
+        return service ? service.problems.filter(p => active[p.severity]) : [];
+    }
+
     // Horloge pour rafraîchir « il y a N min ».
     property double now: Date.now()
 
@@ -266,9 +279,73 @@ PopoutComponent {
         }
     }
 
+    // ---- Légende cliquable = filtre par sévérité (côté vue) ----
+    Flow {
+        id: legend
+        width: parent.width - 2 * Theme.spacingM
+        x: Theme.spacingM
+        spacing: Theme.spacingXS
+        bottomPadding: Theme.spacingXS
+
+        Repeater {
+            model: 6 // une entrée par sévérité 0-5 (calme → critique)
+
+            delegate: Rectangle {
+                id: entry
+
+                required property int index
+                readonly property int cnt: cockpit.service.counts[String(index)] || 0
+                readonly property bool on: cockpit.active[index]
+
+                width: entryRow.implicitWidth + 2 * Theme.spacingS
+                height: 24
+                radius: 6
+                color: entryArea.containsMouse ? "#313244" : "transparent"
+                // Compte nul → très atténué ; sévérité filtrée (off) → semi-atténuée.
+                opacity: entry.cnt === 0 ? 0.4 : (entry.on ? 1 : 0.55)
+
+                Row {
+                    id: entryRow
+                    anchors.centerIn: parent
+                    spacing: Theme.spacingXS
+
+                    Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 8
+                        height: 8
+                        radius: 2
+                        color: Format.severityColor(entry.index)
+                    }
+                    StyledText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: Format.severityLabel(entry.index)
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.strikeout: !entry.on
+                        color: "#a6adc8"
+                    }
+                    StyledText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: String(entry.cnt)
+                        font.family: Theme.defaultMonoFontFamily
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: "#cdd6f4"
+                    }
+                }
+
+                MouseArea {
+                    id: entryArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: cockpit.toggleSeverity(entry.index)
+                }
+            }
+        }
+    }
+
     Item {
         width: parent.width
-        height: cockpit.owner.popoutHeight - header.height - summary.height - Theme.spacingXL
+        height: cockpit.owner.popoutHeight - header.height - summary.height - legend.height - Theme.spacingXL
 
         // État vide (aucun problème connu).
         Column {
@@ -295,7 +372,7 @@ PopoutComponent {
             anchors.fill: parent
             visible: cockpit.problemCount > 0
             clip: true
-            model: cockpit.service.problems
+            model: cockpit.visibleProblems
 
             delegate: Item {
                 id: del
