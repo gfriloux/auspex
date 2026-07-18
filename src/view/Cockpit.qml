@@ -34,6 +34,12 @@ PopoutComponent {
         return service ? service.problems.filter(p => active[p.severity]) : [];
     }
 
+    // États dérivés de la connexion (best-effort, invariant 7).
+    readonly property bool isUnauthorized: service && service.connectionStatus === "unauthorized"
+    readonly property bool isError: service && (service.connectionStatus === "error" || isUnauthorized)
+    // Chargement = 1er poll sans état connu (on ne masque pas une liste déjà remplie).
+    readonly property bool isLoading: service && service.connectionStatus === "polling" && problemCount === 0
+
     // Horloge pour rafraîchir « il y a N min ».
     property double now: Date.now()
 
@@ -344,189 +350,312 @@ PopoutComponent {
     }
 
     Item {
+        id: body
         width: parent.width
         height: cockpit.owner.popoutHeight - header.height - summary.height - legend.height - Theme.spacingXL
 
-        // État vide (aucun problème connu).
-        Column {
-            anchors.centerIn: parent
-            spacing: Theme.spacingS
-            visible: cockpit.problemCount === 0
+        // ---- Bandeau erreur / token refusé (dernier état connu conservé dessous) ----
+        Rectangle {
+            id: banner
+            visible: cockpit.isError
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.leftMargin: Theme.spacingM
+            anchors.rightMargin: Theme.spacingM
+            height: visible ? bannerRow.implicitHeight + 2 * Theme.spacingS : 0
+            radius: 8
+            color: Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.08)
+            border.width: 1
+            border.color: Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.3)
 
-            DankIcon {
-                name: "shield"
-                size: 44
-                color: "#3f5a44"
-                anchors.horizontalCenter: parent.horizontalCenter
+            Row {
+                id: bannerRow
+                anchors.left: parent.left
+                anchors.right: retryBtn.left
+                anchors.leftMargin: Theme.spacingS
+                anchors.rightMargin: Theme.spacingS
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: Theme.spacingS
+
+                DankIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: cockpit.isUnauthorized ? "lock" : "error"
+                    size: Theme.fontSizeLarge
+                    color: "#f38ba8"
+                }
+                StyledText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: bannerRow.width - Theme.iconSize - Theme.spacingS
+                    text: cockpit.isUnauthorized ? "Vérifier l'API token (utilisateur read-only)." : "Zabbix injoignable — nouvelle tentative bientôt. Affichage du dernier état connu."
+                    wrapMode: Text.WordWrap
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: "#cdd6f4"
+                }
             }
-            StyledText {
-                text: "Aucun signal hostile."
-                font.pixelSize: Theme.fontSizeLarge
-                color: "#cdd6f4"
-                anchors.horizontalCenter: parent.horizontalCenter
+
+            Rectangle {
+                id: retryBtn
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.spacingS
+                anchors.verticalCenter: parent.verticalCenter
+                width: retryText.implicitWidth + 2 * Theme.spacingS
+                height: 26
+                radius: 6
+                color: retryArea.containsMouse ? Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.18) : "transparent"
+                border.width: 1
+                border.color: Qt.rgba(243 / 255, 139 / 255, 168 / 255, 0.4)
+
+                StyledText {
+                    id: retryText
+                    anchors.centerIn: parent
+                    text: "Réessayer"
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: "#f38ba8"
+                }
+                MouseArea {
+                    id: retryArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: cockpit.service.poll()
+                }
             }
         }
 
-        // Liste des problèmes (ordre du service = sévérité↓ via la query).
-        ListView {
-            anchors.fill: parent
-            visible: cockpit.problemCount > 0
-            clip: true
-            model: cockpit.visibleProblems
+        // Zone de contenu sous le bandeau.
+        Item {
+            id: content
+            anchors.top: banner.visible ? banner.bottom : parent.top
+            anchors.topMargin: banner.visible ? Theme.spacingS : 0
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
 
-            delegate: Item {
-                id: del
+            // ---- Chargement : skeleton shimmer (1er poll, rien de connu) ----
+            Column {
+                anchors.fill: parent
+                anchors.margins: Theme.spacingM
+                spacing: Theme.spacingM
+                visible: cockpit.isLoading
 
-                required property var modelData
-                readonly property color sevColor: Format.severityColor(modelData.severity)
-                readonly property bool muted: modelData.acknowledged || modelData.suppressed
-
-                width: ListView.view.width
-                height: 44
-
-                HoverHandler {
-                    id: rowHover
+                SequentialAnimation on opacity {
+                    running: cockpit.isLoading
+                    loops: Animation.Infinite
+                    NumberAnimation {
+                        to: 0.4
+                        duration: 700
+                    }
+                    NumberAnimation {
+                        to: 1
+                        duration: 700
+                    }
                 }
 
-                // Fond de survol.
                 Rectangle {
-                    anchors.fill: parent
-                    color: "#45475a"
-                    opacity: rowHover.hovered ? 0.42 : 0
-
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 120
-                        }
-                    }
+                    width: parent.width
+                    height: 12
+                    radius: 6
+                    color: "#313244"
                 }
-
-                // Point de sévérité 9px + halo tinté.
-                Item {
-                    id: dotBox
-                    width: 26
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 17
-                        height: 17
-                        radius: 8.5
-                        color: del.sevColor
-                        opacity: 0.16
-                    }
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 9
-                        height: 9
-                        radius: 4.5
-                        color: del.sevColor
-                    }
-                }
-
-                RowLayout {
-                    anchors.left: dotBox.right
-                    anchors.right: parent.right
-                    anchors.rightMargin: 12
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 10
-
-                    // Colonne host auto-ajustée au nom le plus long (bornée) → alignée.
-                    StyledText {
-                        Layout.preferredWidth: cockpit.hostColWidth
-                        text: del.modelData.host
-                        elide: Text.ElideRight
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.bold: true
-                        color: del.muted ? "#7f849c" : "#cdd6f4"
-                    }
-                    // Description : remplit le reste → largeur constante (colonnes fixes).
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: del.modelData.trigger
-                        elide: Text.ElideRight
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: del.muted ? "#7f849c" : "#cdd6f4"
-                    }
-                    // Icônes d'état : acquitté / supprimé (masquées sinon → pas de gap).
-                    Row {
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 4
-                        visible: del.modelData.acknowledged || del.modelData.suppressed
-
-                        DankIcon {
-                            visible: del.modelData.acknowledged
-                            name: "task_alt"
-                            size: Theme.fontSizeSmall
-                            color: "#7f849c"
-                        }
-                        DankIcon {
-                            visible: del.modelData.suppressed
-                            name: "notifications_off"
-                            size: Theme.fontSizeSmall
-                            color: "#7f849c"
-                        }
-                    }
-                    // Colonne sévérité à largeur fixe → chips alignés verticalement.
-                    Rectangle {
-                        Layout.preferredHeight: 20
-                        Layout.preferredWidth: 112
+                Repeater {
+                    model: 5
+                    delegate: Rectangle {
+                        width: parent.width
+                        height: 20
                         radius: 6
-                        color: "transparent"
+                        color: "#26283a"
+                    }
+                }
+            }
 
-                        // Fond tinté (opacité isolée sur ce rectangle, pas sur le texte).
+            // ---- Vide / zen (aucun problème, connexion saine) ----
+            Column {
+                anchors.centerIn: parent
+                spacing: Theme.spacingS
+                visible: cockpit.problemCount === 0 && !cockpit.isLoading && !cockpit.isError
+
+                DankIcon {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    name: "shield"
+                    size: 62
+                    color: Qt.rgba(166 / 255, 227 / 255, 161 / 255, 0.28)
+                }
+                StyledText {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "Aucun signal hostile."
+                    font.pixelSize: Theme.fontSizeLarge
+                    color: "#cdd6f4"
+                }
+                StyledText {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "Tous les systèmes nominaux. Balayage actif…"
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: "#a6adc8"
+                }
+            }
+
+            // Liste des problèmes (ordre du service = sévérité↓ via la query).
+            ListView {
+                anchors.fill: parent
+                visible: cockpit.problemCount > 0
+                clip: true
+                model: cockpit.visibleProblems
+
+                delegate: Item {
+                    id: del
+
+                    required property var modelData
+                    readonly property color sevColor: Format.severityColor(modelData.severity)
+                    readonly property bool muted: modelData.acknowledged || modelData.suppressed
+
+                    width: ListView.view.width
+                    height: 44
+
+                    HoverHandler {
+                        id: rowHover
+                    }
+
+                    // Fond de survol.
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#45475a"
+                        opacity: rowHover.hovered ? 0.42 : 0
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 120
+                            }
+                        }
+                    }
+
+                    // Point de sévérité 9px + halo tinté.
+                    Item {
+                        id: dotBox
+                        width: 26
+                        anchors.left: parent.left
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+
                         Rectangle {
-                            anchors.fill: parent
-                            radius: 6
+                            anchors.centerIn: parent
+                            width: 17
+                            height: 17
+                            radius: 8.5
                             color: del.sevColor
                             opacity: 0.16
                         }
-
-                        StyledText {
-                            id: chipText
+                        Rectangle {
                             anchors.centerIn: parent
-                            text: Format.severityLabel(del.modelData.severity)
-                            font.pixelSize: Theme.fontSizeSmall
+                            width: 9
+                            height: 9
+                            radius: 4.5
                             color: del.sevColor
                         }
                     }
-                    // Colonne âge à largeur fixe, alignée à droite.
-                    StyledText {
-                        Layout.preferredWidth: 56
-                        horizontalAlignment: Text.AlignRight
-                        text: Format.relativeTime(del.modelData.since, cockpit.now)
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: "#a6adc8"
-                    }
-                }
 
-                // Séparateur 1px en dégradé (fondu aux bords) ; s'efface au survol.
-                Rectangle {
-                    anchors.bottom: parent.bottom
-                    width: parent.width
-                    height: 1
-                    opacity: rowHover.hovered ? 0 : 1
+                    RowLayout {
+                        anchors.left: dotBox.right
+                        anchors.right: parent.right
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 10
 
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 120
+                        // Colonne host auto-ajustée au nom le plus long (bornée) → alignée.
+                        StyledText {
+                            Layout.preferredWidth: cockpit.hostColWidth
+                            text: del.modelData.host
+                            elide: Text.ElideRight
+                            font.pixelSize: Theme.fontSizeSmall
+                            font.bold: true
+                            color: del.muted ? "#7f849c" : "#cdd6f4"
+                        }
+                        // Description : remplit le reste → largeur constante (colonnes fixes).
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: del.modelData.trigger
+                            elide: Text.ElideRight
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: del.muted ? "#7f849c" : "#cdd6f4"
+                        }
+                        // Icônes d'état : acquitté / supprimé (masquées sinon → pas de gap).
+                        Row {
+                            Layout.alignment: Qt.AlignVCenter
+                            spacing: 4
+                            visible: del.modelData.acknowledged || del.modelData.suppressed
+
+                            DankIcon {
+                                visible: del.modelData.acknowledged
+                                name: "task_alt"
+                                size: Theme.fontSizeSmall
+                                color: "#7f849c"
+                            }
+                            DankIcon {
+                                visible: del.modelData.suppressed
+                                name: "notifications_off"
+                                size: Theme.fontSizeSmall
+                                color: "#7f849c"
+                            }
+                        }
+                        // Colonne sévérité à largeur fixe → chips alignés verticalement.
+                        Rectangle {
+                            Layout.preferredHeight: 20
+                            Layout.preferredWidth: 112
+                            radius: 6
+                            color: "transparent"
+
+                            // Fond tinté (opacité isolée sur ce rectangle, pas sur le texte).
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 6
+                                color: del.sevColor
+                                opacity: 0.16
+                            }
+
+                            StyledText {
+                                id: chipText
+                                anchors.centerIn: parent
+                                text: Format.severityLabel(del.modelData.severity)
+                                font.pixelSize: Theme.fontSizeSmall
+                                color: del.sevColor
+                            }
+                        }
+                        // Colonne âge à largeur fixe, alignée à droite.
+                        StyledText {
+                            Layout.preferredWidth: 56
+                            horizontalAlignment: Text.AlignRight
+                            text: Format.relativeTime(del.modelData.since, cockpit.now)
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: "#a6adc8"
                         }
                     }
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop {
-                            position: 0
-                            color: "transparent"
+
+                    // Séparateur 1px en dégradé (fondu aux bords) ; s'efface au survol.
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        height: 1
+                        opacity: rowHover.hovered ? 0 : 1
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 120
+                            }
                         }
-                        GradientStop {
-                            position: 0.5
-                            color: "#45475a"
-                        }
-                        GradientStop {
-                            position: 1
-                            color: "transparent"
+                        gradient: Gradient {
+                            orientation: Gradient.Horizontal
+                            GradientStop {
+                                position: 0
+                                color: "transparent"
+                            }
+                            GradientStop {
+                                position: 0.5
+                                color: "#45475a"
+                            }
+                            GradientStop {
+                                position: 1
+                                color: "transparent"
+                            }
                         }
                     }
                 }
