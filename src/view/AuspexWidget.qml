@@ -1,6 +1,7 @@
 // Widget de barre auspex (plugin DankMaterialShell).
-// Pièce de barre : badge d'état (compteur + couleur de la pire sévérité). Le popout est le
-// cockpit direction C, dans Cockpit.qml. Les notifications (delta) arrivent en v0.4.0.
+// Pièce de barre : badge d'état (compteur + couleur de la pire sévérité) + pulse à
+// l'apparition d'un nouveau problème. Le popout est le cockpit direction C (Cockpit.qml).
+// Effets de bord des notifications (notify-send + pulse) sur le signal du service.
 import QtQuick
 import Quickshell
 import qs.Common
