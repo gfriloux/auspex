@@ -244,6 +244,14 @@ pixel-perfect) :
   **rangée de quick-links** apparaît à droite (fondu) : `open_in_new` (frontend Zabbix),
   `terminal` (SSH host), `show_chart` (graph) — délégation sortante, **non-mutante**
   (compatible lecture seule v1).
+
+> **Note d'implémentation (v0.3.0).** Le cockpit direction C est livré, **sauf** les
+> quick-links de délégation : ils demandent de la config externe (adresse SSH par host,
+> URL du frontend, templates) et un vrai design d'intégration terminal → reportés à un
+> **plan dédié** ultérieur (rien de mutant n'est ajouté en attendant). Le **filtre par
+> sévérité** de la légende est **côté vue** (masque/affiche les lignes localement) : il ne
+> repasse pas par le service ni la couche données déterministe, et n'affecte ni la barre de
+> résumé ni le badge, qui reflètent toujours l'état réel.
 - **Pied** : rappel des appels (`problem.get · trigger.get`) et cadence
   (`last poll 12 s · next in 18 s`).
 

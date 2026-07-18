@@ -1,7 +1,8 @@
-// Cockpit auspex — contenu du popout (extrait de AuspexWidget en v0.3.0).
-// v0.3.0 construit ici la direction C : en-tête télémétrie, barre de résumé segmentée,
-// légende-filtre, liste enrichie, états soignés, pied de cadence. Cette étape 1 est un
-// portage iso-visuel de la liste minimale v0.2.0 ; les phases suivantes l'enrichissent.
+// Cockpit auspex — contenu du popout (direction C, v0.3.0).
+// En-tête télémétrie (état de connexion + refresh), barre de résumé segmentée par sévérité,
+// légende cliquable (filtre côté vue), liste enrichie (point de sévérité, icônes ack/
+// supprimé), états soignés (vide / chargement / erreur / unauthorized) et pied de cadence.
+// Les quick-links de délégation sont reportés à un plan dédié (cf. DESIGN.md).
 //
 // Découplé de AuspexWidget : reçoit le service `Zabbix` (`service`) et le composant de
 // plugin racine (`owner`, pour `popoutHeight`). Ne construit ni n'exécute jamais de requête.

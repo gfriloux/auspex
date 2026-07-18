@@ -22,13 +22,16 @@ Esprit et invariants : [`DESIGN.md`](./DESIGN.md). Méthode de travail :
 
 ## État
 
-**v0.2.0 — service + badge + home-manager.** auspex est **installable et utilisable** :
-un service poll une vraie instance Zabbix 7.0 (HTTP via curl), un **badge de barre**
-affiche l'état (compteur + couleur de la pire sévérité), un **popout liste** montre les
-problèmes actifs, et les réglages (URL / token / intervalle) vivent dans DMS.
+**v0.3.0 — cockpit direction C.** auspex est **installable et utilisable** : un service
+poll une vraie instance Zabbix 7.0 (HTTP via curl), un **badge de barre** affiche l'état
+(compteur + couleur de la pire sévérité), et le **popout cockpit** offre l'en-tête
+télémétrie (état de connexion + refresh), la **barre de résumé segmentée** par sévérité, une
+**légende cliquable** qui filtre la liste, une liste enrichie (point de sévérité, icônes
+acquitté/supprimé) et des **états soignés** (vide / chargement / erreur / token refusé) plus
+un pied de cadence. Les réglages (URL / token / intervalle) vivent dans DMS.
 
-Reste à venir : **cockpit complet direction C** (télémétrie, barre de résumé, filtres,
-états soignés) en v0.3.0, et **notifications desktop** sur nouveau problème en v0.4.0.
+Reste à venir : **notifications desktop** sur nouveau problème (delta) en v0.4.0, et les
+**quick-links de délégation** (SSH host / frontend Zabbix / graph) dans un plan dédié.
 Fondations, invariants et direction visuelle : `DESIGN.md`.
 
 ## Développement
@@ -52,7 +55,8 @@ src/query/queries.js     ← builders de corps JSON-RPC (problem.get, trigger.ge
 src/model/problems.js    ← parsing, jointure host, agrégats, delta (pur, golden-testé)
 src/model/format.js      ← helpers de présentation (severityLabel, relativeTime)
 src/view/Zabbix.qml      ← service : poll HTTP (curl/Process) → modèle
-src/view/AuspexWidget.qml← badge de barre + popout liste (PluginComponent)
+src/view/AuspexWidget.qml← badge de barre (PluginComponent) + montage du cockpit
+src/view/Cockpit.qml     ← popout cockpit direction C (télémétrie, résumé, légende, liste)
 src/view/Settings.qml    ← réglages (URL, token, intervalle, TLS)
 tests/                   ← fixtures API figées + goldens (modèle attendu)
 .claude/plans/           ← plans de version (plan.md, manual_tests.md, phase0_results.md)
