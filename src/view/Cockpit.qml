@@ -41,20 +41,9 @@ PopoutComponent {
         return Math.min(Math.max(w + 4, 48), 360);
     }
 
-    headerText: "AUSPEX"
-    detailsText: {
-        const s = service.connectionStatus;
-        if (s === "live")
-            return cockpit.problemCount + " problème(s) actif(s)";
-        if (s === "polling")
-            return "interrogation…";
-        if (s === "unauthorized")
-            return "token refusé — vérifier l'API token (read-only)";
-        if (s === "error")
-            return service.errorMessage;
-        return "non configuré — renseigner URL + token";
-    }
-    showCloseButton: true
+    // En-tête par défaut de PopoutComponent masqué : on porte notre propre en-tête
+    // télémétrie (headerText/detailsText vides → popoutHeader/popoutDetails invisibles).
+    headerText: ""
 
     Timer {
         interval: 30000
@@ -63,9 +52,139 @@ PopoutComponent {
         onTriggered: cockpit.now = Date.now()
     }
 
+    // ---- En-tête télémétrie (signature direction C) ----
+    Rectangle {
+        id: header
+        width: parent.width
+        height: 52
+        color: Qt.rgba(24 / 255, 24 / 255, 37 / 255, 0.6)
+
+        // Gauche : cog radar Mauve, wordmark AUSPEX (mono), « // telemetry » discret.
+        Row {
+            anchors.left: parent.left
+            anchors.leftMargin: Theme.spacingM
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Theme.spacingS
+
+            DankIcon {
+                anchors.verticalCenter: parent.verticalCenter
+                name: "radar"
+                size: Theme.fontSizeLarge
+                color: "#cba6f7"
+            }
+            StyledText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "AUSPEX"
+                font.family: Theme.defaultMonoFontFamily
+                font.pixelSize: Theme.fontSizeMedium
+                font.bold: true
+                font.letterSpacing: 2
+                color: "#cdd6f4"
+            }
+            StyledText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "// telemetry"
+                font.family: Theme.defaultMonoFontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                color: "#6c7086"
+            }
+        }
+
+        // Droite : point + libellé d'état de connexion, bouton refresh (tourne pendant le
+        // poll), bouton close.
+        Row {
+            anchors.right: parent.right
+            anchors.rightMargin: Theme.spacingM
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Theme.spacingS
+
+            Rectangle {
+                id: statusDot
+                anchors.verticalCenter: parent.verticalCenter
+                width: 8
+                height: 8
+                radius: 4
+                color: Format.connectionColor(cockpit.service.connectionStatus)
+
+                // Point « live » qui respire (livedot).
+                SequentialAnimation on opacity {
+                    running: cockpit.service.connectionStatus === "live"
+                    loops: Animation.Infinite
+                    NumberAnimation {
+                        to: 0.35
+                        duration: 1000
+                    }
+                    NumberAnimation {
+                        to: 1
+                        duration: 1000
+                    }
+                }
+            }
+            StyledText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: Format.connectionLabel(cockpit.service.connectionStatus)
+                font.family: Theme.defaultMonoFontFamily
+                font.pixelSize: Theme.fontSizeSmall
+                color: "#a6adc8"
+            }
+
+            Item {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 28
+                height: 28
+
+                DankIcon {
+                    id: refreshIcon
+                    anchors.centerIn: parent
+                    name: "refresh"
+                    size: Theme.fontSizeMedium
+                    color: refreshArea.containsMouse ? "#cdd6f4" : "#a6adc8"
+
+                    RotationAnimation on rotation {
+                        running: cockpit.service.connectionStatus === "polling"
+                        loops: Animation.Infinite
+                        from: 0
+                        to: 360
+                        duration: 800
+                    }
+                }
+                MouseArea {
+                    id: refreshArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: cockpit.service.poll()
+                }
+            }
+
+            Item {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 28
+                height: 28
+
+                DankIcon {
+                    anchors.centerIn: parent
+                    name: "close"
+                    size: Theme.fontSizeMedium
+                    color: closeArea.containsMouse ? "#f38ba8" : "#a6adc8"
+                }
+                MouseArea {
+                    id: closeArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        if (cockpit.closePopout)
+                            cockpit.closePopout();
+                    }
+                }
+            }
+        }
+    }
+
     Item {
         width: parent.width
-        height: cockpit.owner.popoutHeight - cockpit.headerHeight - cockpit.detailsHeight - Theme.spacingXL
+        height: cockpit.owner.popoutHeight - header.height - Theme.spacingXL
 
         // État vide (aucun problème connu).
         Column {
