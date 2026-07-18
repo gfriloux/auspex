@@ -24,6 +24,11 @@ PluginComponent {
     // Couleur de la pire sévérité (vert si RAS) — pilote le badge.
     readonly property string stateColor: Format.severityColor(svc.worstSeverity)
 
+    // Pulse « nouveau problème » du badge : indépendant du toggle notifications (indice
+    // in-barre discret), mais respecte le seuil de sévérité comme la notif.
+    property bool notifyPulse: false
+    property color pulseColor: "#f38ba8"
+
     Zabbix {
         id: svc
         url: root.cfgUrl
@@ -40,8 +45,24 @@ PluginComponent {
             const qualifying = added.filter(p => p.severity >= root.cfgNotifyMinSeverity);
             if (qualifying.length === 0)
                 return;
+            root._pulse(qualifying);
             root._notify(qualifying);
         }
+    }
+
+    // Déclenche le pulse du badge, coloré par la pire sévérité du lot (~3 cycles de 1.8s).
+    function _pulse(qualifying) {
+        let worst = -1;
+        for (let i = 0; i < qualifying.length; i++)
+            worst = Math.max(worst, qualifying[i].severity);
+        root.pulseColor = Format.severityColor(worst);
+        root.notifyPulse = true;
+        pulseStopTimer.restart();
+    }
+    Timer {
+        id: pulseStopTimer
+        interval: 5400
+        onTriggered: root.notifyPulse = false
     }
 
     // Notification desktop via notify-send (→ daemon DMS). Gated par le toggle.
@@ -67,6 +88,43 @@ PluginComponent {
                 size: Theme.fontSizeLarge
                 filled: root.problemCount > 0
                 color: root.problemCount > 0 ? root.stateColor : Theme.surfaceTextMedium
+            }
+
+            // Anneau de pulse à l'apparition d'un nouveau problème (couleur = pire sévérité).
+            Rectangle {
+                id: pulseRing
+                visible: root.notifyPulse
+                anchors.centerIn: radarIcon
+                width: radarIcon.implicitWidth
+                height: radarIcon.implicitHeight
+                radius: Math.max(width, height) / 2
+                color: "transparent"
+                border.width: 2
+                border.color: root.pulseColor
+
+                SequentialAnimation {
+                    running: root.notifyPulse
+                    loops: Animation.Infinite
+
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: pulseRing
+                            property: "scale"
+                            from: 0.8
+                            to: 1.9
+                            duration: 1800
+                            easing.type: Easing.OutCubic
+                        }
+                        NumberAnimation {
+                            target: pulseRing
+                            property: "opacity"
+                            from: 0.7
+                            to: 0
+                            duration: 1800
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
             }
 
             // Badge compteur, ancré en haut-droite de l'icône, couleur = pire sévérité.
