@@ -20,6 +20,44 @@ function severityColor(n) {
     return SEVERITY_COLORS[n] !== undefined ? SEVERITY_COLORS[n] : RAS_COLOR;
 }
 
+// État de connexion (Zabbix.connectionStatus) → libellé + couleur du point de l'en-tête
+// télémétrie. `idle` = pas encore interrogé ; `error`/`unauthorized` = dégradé (best-effort,
+// invariant 7). Purs et dérivables → hors modèle golden.
+var CONNECTION = {
+    "live": {
+        label: "LIVE",
+        color: "#a6e3a1"
+    } // Green
+    ,
+    "polling": {
+        label: "interrogation…",
+        color: "#89b4fa"
+    } // Blue
+    ,
+    "error": {
+        label: "hors ligne",
+        color: "#f38ba8"
+    } // Red
+    ,
+    "unauthorized": {
+        label: "non autorisé",
+        color: "#eba0ac"
+    } // Maroon
+    ,
+    "idle": {
+        label: "en veille",
+        color: "#6c7086"
+    } // Overlay
+};
+
+function connectionLabel(status) {
+    return CONNECTION[status] !== undefined ? CONNECTION[status].label : "—";
+}
+
+function connectionColor(status) {
+    return CONNECTION[status] !== undefined ? CONNECTION[status].color : "#6c7086";
+}
+
 // clock Zabbix = epoch en SECONDES ; now = millisecondes (Date.now()).
 function relativeTime(clockSeconds, nowMs) {
     if (!clockSeconds)

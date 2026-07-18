@@ -1,9 +1,7 @@
 // Widget de barre auspex (plugin DankMaterialShell).
-// v0.2.0 : badge d'état (compteur + couleur de la pire sévérité) + popout liste minimale.
-// Le cockpit complet (direction C : télémétrie, barre de résumé, filtres, états soignés)
-// arrive en v0.3.0 ; les notifications (delta) en v0.4.0.
+// Pièce de barre : badge d'état (compteur + couleur de la pire sévérité). Le popout est le
+// cockpit direction C, dans Cockpit.qml. Les notifications (delta) arrivent en v0.4.0.
 import QtQuick
-import QtQuick.Layouts
 import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
@@ -67,168 +65,11 @@ PluginComponent {
         }
     }
 
-    // ---- Popout : liste minimale des problèmes (le cockpit C = v0.3.0) ----
+    // ---- Popout : cockpit direction C (Cockpit.qml) ----
     popoutContent: Component {
-        PopoutComponent {
-            id: cockpit
-
-            // Horloge pour rafraîchir « il y a N min ».
-            property double now: Date.now()
-
-            // Largeur de la colonne host = celle du nom le plus long (auto-fit), bornée.
-            // Même valeur pour toutes les lignes → alignement, sans gaspiller d'espace.
-            TextMetrics {
-                id: hostMetrics
-                font.pixelSize: Theme.fontSizeSmall
-                font.bold: true
-            }
-            readonly property real hostColWidth: {
-                let w = 0;
-                for (let i = 0; i < svc.problems.length; i++) {
-                    hostMetrics.text = svc.problems[i].host;
-                    if (hostMetrics.advanceWidth > w)
-                        w = hostMetrics.advanceWidth;
-                }
-                return Math.min(Math.max(w + 4, 48), 360);
-            }
-
-            headerText: "AUSPEX"
-            detailsText: {
-                const s = svc.connectionStatus;
-                if (s === "live")
-                    return root.problemCount + " problème(s) actif(s)";
-                if (s === "polling")
-                    return "interrogation…";
-                if (s === "unauthorized")
-                    return "token refusé — vérifier l'API token (read-only)";
-                if (s === "error")
-                    return svc.errorMessage;
-                return "non configuré — renseigner URL + token";
-            }
-            showCloseButton: true
-
-            Timer {
-                interval: 30000
-                running: true
-                repeat: true
-                onTriggered: cockpit.now = Date.now()
-            }
-
-            Item {
-                width: parent.width
-                height: root.popoutHeight - cockpit.headerHeight - cockpit.detailsHeight - Theme.spacingXL
-
-                // État vide (aucun problème connu).
-                Column {
-                    anchors.centerIn: parent
-                    spacing: Theme.spacingS
-                    visible: root.problemCount === 0
-
-                    DankIcon {
-                        name: "shield"
-                        size: 44
-                        color: "#3f5a44"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                    StyledText {
-                        text: "Aucun signal hostile."
-                        font.pixelSize: Theme.fontSizeLarge
-                        color: "#cdd6f4"
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-                }
-
-                // Liste des problèmes (ordre du service = sévérité↓ via la query).
-                ListView {
-                    anchors.fill: parent
-                    visible: root.problemCount > 0
-                    clip: true
-                    model: svc.problems
-
-                    delegate: Item {
-                        id: del
-
-                        required property var modelData
-                        readonly property color sevColor: Format.severityColor(modelData.severity)
-                        readonly property bool muted: modelData.acknowledged || modelData.suppressed
-
-                        width: ListView.view.width
-                        height: 44
-
-                        Rectangle {
-                            id: sevBar
-                            width: 3
-                            height: parent.height
-                            color: del.sevColor
-                        }
-
-                        RowLayout {
-                            anchors.left: sevBar.right
-                            anchors.leftMargin: 11
-                            anchors.right: parent.right
-                            anchors.rightMargin: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                            spacing: 10
-
-                            // Colonne host auto-ajustée au nom le plus long (bornée) → alignée.
-                            StyledText {
-                                Layout.preferredWidth: cockpit.hostColWidth
-                                text: del.modelData.host
-                                elide: Text.ElideRight
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.bold: true
-                                color: del.muted ? "#7f849c" : "#cdd6f4"
-                            }
-                            // Description : remplit le reste → largeur constante (colonnes fixes).
-                            StyledText {
-                                Layout.fillWidth: true
-                                text: del.modelData.trigger
-                                elide: Text.ElideRight
-                                font.pixelSize: Theme.fontSizeSmall
-                                color: del.muted ? "#7f849c" : "#cdd6f4"
-                            }
-                            // Colonne sévérité à largeur fixe → chips alignés verticalement.
-                            Rectangle {
-                                Layout.preferredHeight: 20
-                                Layout.preferredWidth: 112
-                                radius: 6
-                                color: "transparent"
-
-                                // Fond tinté (opacité isolée sur ce rectangle, pas sur le texte).
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 6
-                                    color: del.sevColor
-                                    opacity: 0.16
-                                }
-
-                                StyledText {
-                                    id: chipText
-                                    anchors.centerIn: parent
-                                    text: Format.severityLabel(del.modelData.severity)
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    color: del.sevColor
-                                }
-                            }
-                            // Colonne âge à largeur fixe, alignée à droite.
-                            StyledText {
-                                Layout.preferredWidth: 56
-                                horizontalAlignment: Text.AlignRight
-                                text: Format.relativeTime(del.modelData.since, cockpit.now)
-                                font.pixelSize: Theme.fontSizeSmall
-                                color: "#a6adc8"
-                            }
-                        }
-
-                        Rectangle {
-                            anchors.bottom: parent.bottom
-                            width: parent.width
-                            height: 1
-                            color: "#26283a"
-                        }
-                    }
-                }
-            }
+        Cockpit {
+            service: svc
+            owner: root
         }
     }
     popoutWidth: 820

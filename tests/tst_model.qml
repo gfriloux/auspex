@@ -13,6 +13,20 @@ TestCase {
         compare(Format.severityLabel(9), "Unknown");
     }
 
+    function test_connectionLabel() {
+        compare(Format.connectionLabel("live"), "LIVE");
+        compare(Format.connectionLabel("polling"), "interrogation…");
+        compare(Format.connectionLabel("unauthorized"), "non autorisé");
+        compare(Format.connectionLabel("zzz"), "—"); // statut inconnu
+    }
+
+    function test_connectionColor() {
+        compare(Format.connectionColor("live"), "#a6e3a1");
+        compare(Format.connectionColor("error"), "#f38ba8");
+        compare(Format.connectionColor("idle"), "#6c7086");
+        compare(Format.connectionColor("zzz"), "#6c7086"); // repli
+    }
+
     function test_relativeTime() {
         var now = 1700000000000; // ms
         compare(Format.relativeTime(0, now), "");
