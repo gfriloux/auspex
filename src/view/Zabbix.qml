@@ -32,9 +32,17 @@ QtObject {
 
     readonly property bool configured: url.length > 0 && token.length > 0
 
+    // Émis quand des problèmes NOUVEAUX apparaissent (delta `added`), jamais au 1er poll.
+    // La vue consomme ce signal pour notifier / pulser (le service ne fait aucun effet de bord).
+    signal problemsAppeared(var added)
+
     // Problèmes partiels (avec triggerid) entre le 1er et le 2e appel.
     property var _partial: []
     property bool _busy: false
+
+    // État précédent + drapeau de baseline pour le delta (cf. _commit).
+    property var _prevProblems: []
+    property bool _hasBaseline: false
 
     // (Re)poll quand un réglage change.
     function reconfigure() {
@@ -148,6 +156,10 @@ QtObject {
     }
 
     function _commit(list) {
+        // Delta sur l'état réel précédent (un _fail ne réinitialise pas la baseline).
+        var diff = Model.diffProblems(root._prevProblems, list);
+        root._prevProblems = list;
+
         root.problems = list;
         root.worstSeverity = Model.worstSeverity(list);
         root.counts = Model.countsBySeverity(list);
@@ -155,6 +167,12 @@ QtObject {
         root.errorMessage = "";
         root.lastPollAt = Date.now();
         root._busy = false;
+
+        // Le 1er commit réussi établit la baseline SANS notifier (sinon salve au démarrage) ;
+        // ensuite seulement, tout `added` prévient. `eventid` garantit zéro re-notification.
+        if (root._hasBaseline && diff.added.length > 0)
+            root.problemsAppeared(diff.added);
+        root._hasBaseline = true;
     }
 
     // Best-effort : on conserve le dernier `problems` connu (DESIGN inv. 7).
