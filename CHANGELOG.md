@@ -6,6 +6,22 @@ versions en [SemVer]. Généré depuis les Conventional Commits par git-cliff.
 [Keep a Changelog]: https://keepachangelog.com/fr/1.1.0/
 [SemVer]: https://semver.org/lang/fr/
 
+## [0.4.0] - 2026-07-18
+
+### Fonctionnalités
+
+- **nix** : Dépendance notify-send (libnotify) au runtime
+- **view** : Pulse du badge à l'apparition d'un nouveau problème
+- **view** : Notification desktop sur nouveau problème (notify-send)
+- **view** : Réglages notifications (activation + seuil de sévérité)
+- **zabbix** : Émettre le delta added (silencieux au 1er poll)
+- **model** : Helpers de contenu et d'urgence de notification
+
+### Documentation
+
+- Notifications v0.4.0
+- Plan v0.4.0 (notifications)
+
 ## [0.3.0] - 2026-07-18
 
 ### Fonctionnalités
@@ -60,6 +76,7 @@ versions en [SemVer]. Généré depuis les Conventional Commits par git-cliff.
 
 ### Divers
 
+- Régénérer le changelog (v0.3.0 complet)
 - Configuration renovate (inputs flake + actions)
 - Git-cliff (cliff.toml) + CHANGELOG initial
 - Aligner plugin.json sur la version 0.3.0
