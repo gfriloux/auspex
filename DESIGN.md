@@ -282,6 +282,15 @@ Pièce ~38px, fond `rgba(24,24,37,.92)`, bord `#313244`, rayon 14, icône `radar
   (« 3 nouveaux problèmes · 1 Disaster · 2 High »). Déclenchée **uniquement** sur le delta
   `added`, jamais de re-notification d'un problème déjà connu.
 
+> **Note d'implémentation (v0.4.0).** Émission via `notify-send` (→ daemon de notifications
+> DMS qui rend la carte) avec `Quickshell.execDetached` — voie idiomatique DMS. Le **service**
+> calcule le delta (`diffProblems`) et émet un signal `problemsAppeared(added)` ; la **vue**
+> fait les effets de bord (notif + pulse), le service ne connaît ni notify-send ni animation.
+> Le **premier poll établit la baseline sans notifier** (pas de salve au démarrage). Réglages :
+> **activation** (le toggle ne coupe **que** la notif desktop, pas le pulse) et **seuil de
+> sévérité** (filtre notif **et** pulse). L'urgence `notify-send` passe en `critical` si le lot
+> contient High/Disaster.
+
 ---
 
 ## Clin d'œil Adeptus Mechanicus

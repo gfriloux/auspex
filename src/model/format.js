@@ -76,3 +76,50 @@ function relativeTime(clockSeconds, nowMs) {
     var d = Math.floor(h / 24);
     return "il y a " + d + " j";
 }
+
+// Contenu d'une notification desktop pour un lot de problèmes nouvellement apparus (delta
+// `added`). Le lot est supposé déjà filtré par le seuil de sévérité (côté vue). Pur (dépend
+// de `nowMs` pour l'âge) → hors modèle golden.
+//   - 1 seul : titre « host · trigger », corps « Sévérité · âge ».
+//   - plusieurs : titre « N nouveaux problèmes », corps « k Sévérité » décroissant, non nuls.
+function notificationContent(added, nowMs) {
+    if (!added || added.length === 0)
+        return {
+            "title": "",
+            "body": ""
+        };
+    if (added.length === 1) {
+        var p = added[0];
+        return {
+            "title": p.host + " · " + p.trigger,
+            "body": severityLabel(p.severity) + " · " + relativeTime(p.since, nowMs)
+        };
+    }
+    var counts = [0, 0, 0, 0, 0, 0];
+    for (var i = 0; i < added.length; i++) {
+        var s = added[i].severity;
+        if (s >= 0 && s <= 5)
+            counts[s]++;
+    }
+    var parts = [];
+    for (var lvl = 5; lvl >= 0; lvl--) {
+        if (counts[lvl] > 0)
+            parts.push(counts[lvl] + " " + severityLabel(lvl));
+    }
+    return {
+        "title": added.length + " nouveaux problèmes",
+        "body": parts.join(" · ")
+    };
+}
+
+// Urgence notify-send : « critical » si un problème du lot est High (4) ou Disaster (5),
+// sinon « normal ». Pur.
+function notificationUrgency(added) {
+    if (!added)
+        return "normal";
+    for (var i = 0; i < added.length; i++) {
+        if (added[i].severity >= 4)
+            return "critical";
+    }
+    return "normal";
+}

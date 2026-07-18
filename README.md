@@ -22,17 +22,18 @@ Esprit et invariants : [`DESIGN.md`](./DESIGN.md). Méthode de travail :
 
 ## État
 
-**v0.3.0 — cockpit direction C.** auspex est **installable et utilisable** : un service
-poll une vraie instance Zabbix 7.0 (HTTP via curl), un **badge de barre** affiche l'état
-(compteur + couleur de la pire sévérité), et le **popout cockpit** offre l'en-tête
-télémétrie (état de connexion + refresh), la **barre de résumé segmentée** par sévérité, une
-**légende cliquable** qui filtre la liste, une liste enrichie (point de sévérité, icônes
-acquitté/supprimé) et des **états soignés** (vide / chargement / erreur / token refusé) plus
-un pied de cadence. Les réglages (URL / token / intervalle) vivent dans DMS.
+**v0.4.0 — notifications.** auspex est **installable et utilisable** : un service poll une
+vraie instance Zabbix 7.0 (HTTP via curl), un **badge de barre** affiche l'état (compteur +
+couleur de la pire sévérité), le **popout cockpit** offre l'en-tête télémétrie, la **barre de
+résumé segmentée** par sévérité, une **légende cliquable** qui filtre la liste, une liste
+enrichie et des **états soignés** (vide / chargement / erreur / token refusé) plus un pied de
+cadence. À l'apparition d'un **nouveau problème**, auspex **prévient** : notification desktop
+(`notify-send` → daemon DMS, groupée si plusieurs d'un coup) et **pulse du badge** — avec
+**activation** et **seuil de sévérité** réglables. Les réglages (URL / token / intervalle /
+notifications) vivent dans DMS.
 
-Reste à venir : **notifications desktop** sur nouveau problème (delta) en v0.4.0, et les
-**quick-links de délégation** (SSH host / frontend Zabbix / graph) dans un plan dédié.
-Fondations, invariants et direction visuelle : `DESIGN.md`.
+Reste à venir : **quick-links de délégation** (SSH host / frontend Zabbix / graph) dans un
+plan dédié. Fondations, invariants et direction visuelle : `DESIGN.md`.
 
 ## Développement
 
