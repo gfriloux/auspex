@@ -2,7 +2,7 @@
   "id": "auspex",
   "name": "Auspex",
   "description": "Supervision Zabbix — badge d'état et cockpit des problèmes actifs",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "author": "gfriloux",
   "type": "widget",
   "capabilities": ["dankbar-widget"],
