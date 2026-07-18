@@ -58,6 +58,7 @@
             # Outillage projet
             just
             git
+            git-cliff # changelog depuis les Conventional Commits (just changelog)
 
             # Portes Nix (cf. .pre-commit-config.yaml)
             alejandra
