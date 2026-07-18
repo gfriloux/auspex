@@ -1,7 +1,9 @@
 [
   {
     "eventid": "12345",
+    "triggerid": "101",
     "host": "web01",
+    "hostid": "10101",
     "trigger": "High CPU load on web01",
     "severity": 4,
     "since": 1699999999,

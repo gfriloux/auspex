@@ -108,8 +108,10 @@ TestCase {
                 }]
         };
         var m = Model.parseTriggers(res);
-        compare(m["5"], "web01");
-        compare(m["6"], "");
+        compare(m["5"].name, "web01");
+        compare(m["5"].hostid, "1");
+        compare(m["6"].name, ""); // hosts vide → name/hostid ""
+        compare(m["6"].hostid, "");
     }
 
     // Un triggerid inconnu de la map ne casse pas la jointure : host "".
@@ -124,6 +126,8 @@ TestCase {
                     "suppressed": false
                 }], {});
         compare(joined[0].host, "");
+        compare(joined[0].hostid, ""); // host inconnu → hostid ""
+        compare(joined[0].triggerid, "404"); // triggerid conservé
     }
 
     function test_worstSeverity() {

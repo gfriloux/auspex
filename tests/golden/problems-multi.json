@@ -1,7 +1,9 @@
 [
   {
     "eventid": "30",
+    "triggerid": "103",
     "host": "db01",
+    "hostid": "10103",
     "trigger": "Disk space critical on db01",
     "severity": 5,
     "since": 1700000300,
@@ -10,7 +12,9 @@
   },
   {
     "eventid": "20",
+    "triggerid": "102",
     "host": "app01",
+    "hostid": "10102",
     "trigger": "Service down on app01",
     "severity": 3,
     "since": 1700000200,
@@ -19,7 +23,9 @@
   },
   {
     "eventid": "10",
+    "triggerid": "199",
     "host": "",
+    "hostid": "",
     "trigger": "Orphan trigger problem",
     "severity": 2,
     "since": 1700000100,
