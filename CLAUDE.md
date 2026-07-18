@@ -68,5 +68,5 @@ Le `Justfile` est la **seule** définition des gates ; pre-commit et la CI l'app
 - **`tmp/`** : jamais commité.
 - **Couche données déterministe** : tout changement de `query`/`model` passe par une
   fixture + un golden (cf. PROCEDURE_PLANS.md §4).
-- **Outillage release** (renovate, git-cliff, workflow release) : ajouté au **premier tag**,
-  pas avant.
+- **Outillage release** (renovate, git-cliff, CI + workflow release) : **en place depuis
+  v0.3.0**. Le process de release est dans `README.md` ; le tag reste posé par l'utilisateur.

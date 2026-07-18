@@ -51,3 +51,7 @@ mock scenario="ok" port="8384":
 # sans toucher au DMS quotidien. Combiner avec `just mock` dans un autre terminal.
 dev-bar:
     @scripts/auspex-dev "{{ justfile_directory() }}"
+
+# Régénère le changelog depuis les Conventional Commits (git-cliff). Relire le diff.
+changelog:
+    @git-cliff --output CHANGELOG.md
