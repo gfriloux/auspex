@@ -21,6 +21,11 @@ PluginComponent {
     readonly property bool cfgNotifyEnabled: (pluginData && pluginData.notifyEnabled !== undefined) ? pluginData.notifyEnabled : true
     readonly property int cfgNotifyMinSeverity: (pluginData && pluginData.notifyMinSeverity !== undefined) ? parseInt(pluginData.notifyMinSeverity) : 0
 
+    // Quick-links : templates d'URL frontend (vide = désactivé) + base dérivée de l'URL d'API.
+    readonly property string frontendBase: Format.frontendBase(cfgUrl)
+    readonly property string cfgFrontendProblemUrl: (pluginData && pluginData.frontendProblemUrl !== undefined) ? pluginData.frontendProblemUrl : "{base}/tr_events.php?triggerid={triggerid}&eventid={eventid}"
+    readonly property string cfgFrontendHostUrl: (pluginData && pluginData.frontendHostUrl !== undefined) ? pluginData.frontendHostUrl : "{base}/zabbix.php?action=problem.view&hostids[]={hostid}"
+
     readonly property int problemCount: svc.problems.length
     // Couleur de la pire sévérité (vert si RAS) — pilote le badge.
     readonly property string stateColor: Format.severityColor(svc.worstSeverity)

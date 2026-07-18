@@ -44,24 +44,33 @@ function parseProblems(res) {
     });
 }
 
-// Réponse trigger.get (selectHosts) → map triggerid → nom de host (1er host, "" sinon).
+// Réponse trigger.get (selectHosts) → map triggerid → { name, hostid } du 1er host
+// (name/hostid "" sinon). hostid alimente les quick-links vers le frontend Zabbix (v0.5.0).
 function parseTriggers(res) {
     var rows = (res && res.result) || [];
     var map = {};
     for (var i = 0; i < rows.length; i++) {
         var t = rows[i];
-        map[t.triggerid] = (t.hosts && t.hosts.length) ? t.hosts[0].name : "";
+        var h = (t.hosts && t.hosts.length) ? t.hosts[0] : null;
+        map[t.triggerid] = {
+            "name": h ? h.name : "",
+            "hostid": h ? h.hostid : ""
+        };
     }
     return map;
 }
 
 // Joint les problèmes partiels avec la map de hosts → modèle de domaine final.
-// triggerid absent de la map → host "" (best-effort : ne casse jamais l'affichage).
+// triggerid absent de la map → host/hostid "" (best-effort : ne casse jamais l'affichage).
+// triggerid + hostid sont exposés pour les quick-links (deep-links frontend Zabbix).
 function joinProblems(problems, hostMap) {
     return problems.map(function (p) {
+        var h = hostMap[p.triggerid];
         return {
             "eventid": p.eventid,
-            "host": hostMap[p.triggerid] !== undefined ? hostMap[p.triggerid] : "",
+            "triggerid": p.triggerid,
+            "host": h !== undefined ? h.name : "",
+            "hostid": h !== undefined ? h.hostid : "",
             "trigger": p.trigger,
             "severity": p.severity,
             "since": p.since,

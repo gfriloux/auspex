@@ -245,13 +245,18 @@ pixel-perfect) :
   `terminal` (SSH host), `show_chart` (graph) — délégation sortante, **non-mutante**
   (compatible lecture seule v1).
 
-> **Note d'implémentation (v0.3.0).** Le cockpit direction C est livré, **sauf** les
-> quick-links de délégation : ils demandent de la config externe (adresse SSH par host,
-> URL du frontend, templates) et un vrai design d'intégration terminal → reportés à un
-> **plan dédié** ultérieur (rien de mutant n'est ajouté en attendant). Le **filtre par
-> sévérité** de la légende est **côté vue** (masque/affiche les lignes localement) : il ne
-> repasse pas par le service ni la couche données déterministe, et n'affecte ni la barre de
-> résumé ni le badge, qui reflètent toujours l'état réel.
+> **Note d'implémentation (v0.3.0, complétée v0.5.0).** Le **filtre par sévérité** de la
+> légende est **côté vue** (masque/affiche les lignes localement) : il ne repasse pas par le
+> service ni la couche données déterministe, et n'affecte ni la barre de résumé ni le badge,
+> qui reflètent toujours l'état réel.
+>
+> **Quick-links (v0.5.0)** : livrés pour le **frontend web** (page du problème via
+> `tr_events.php?triggerid&eventid`, page du host via `zabbix.php?action=problem.view`), par
+> **templates d'URL configurables** (placeholders `{base}{hostid}{triggerid}{eventid}`, base
+> dérivée de l'URL d'API ; template vide = lien masqué). Ouverture via `Qt.openUrlExternally`,
+> **non-mutant**. Le modèle expose `triggerid`+`hostid` pour ça. **SSH host** (résolution
+> d'adresse/terminal) et **graphe** (appels API supplémentaires + choix du graphe) restent
+> **reportés** à un plan dédié — rien de mutant n'est ajouté en attendant.
 - **Pied** : rappel des appels (`problem.get · trigger.get`) et cadence
   (`last poll 12 s · next in 18 s`).
 

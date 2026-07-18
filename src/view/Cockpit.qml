@@ -535,6 +535,19 @@ PopoutComponent {
                     readonly property color sevColor: Format.severityColor(modelData.severity)
                     readonly property bool muted: modelData.acknowledged || modelData.suppressed
 
+                    // Quick-links (deep-links frontend Zabbix) — "" si template vide ou
+                    // identifiant manquant (l'icône est alors masquée). Non-mutant.
+                    readonly property string problemUrl: Format.buildFrontendUrl(cockpit.owner.cfgFrontendProblemUrl, {
+                        "base": cockpit.owner.frontendBase,
+                        "triggerid": modelData.triggerid,
+                        "eventid": modelData.eventid,
+                        "hostid": modelData.hostid
+                    })
+                    readonly property string hostUrl: Format.buildFrontendUrl(cockpit.owner.cfgFrontendHostUrl, {
+                        "base": cockpit.owner.frontendBase,
+                        "hostid": modelData.hostid
+                    })
+
                     width: ListView.view.width
                     height: 44
 
@@ -681,6 +694,63 @@ PopoutComponent {
                             GradientStop {
                                 position: 1
                                 color: "transparent"
+                            }
+                        }
+                    }
+
+                    // Quick-links au survol (délégation sortante, non-mutante) : fondu à droite,
+                    // fond opaque des boutons pour masquer la colonne âge dessous. Une icône
+                    // n'apparaît que si son URL est non vide (template + identifiants présents).
+                    Row {
+                        id: quickLinks
+                        anchors.right: parent.right
+                        anchors.rightMargin: 12
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 4
+                        opacity: rowHover.hovered ? 1 : 0
+                        visible: opacity > 0
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: 120
+                            }
+                        }
+
+                        Repeater {
+                            model: [
+                                {
+                                    "icon": "open_in_new",
+                                    "url": del.problemUrl
+                                },
+                                {
+                                    "icon": "dns",
+                                    "url": del.hostUrl
+                                }
+                            ]
+
+                            delegate: Rectangle {
+                                id: linkBtn
+
+                                required property var modelData
+                                visible: modelData.url !== ""
+                                width: 26
+                                height: 26
+                                radius: 6
+                                color: linkArea.containsMouse ? "#45475a" : "#313244"
+
+                                DankIcon {
+                                    anchors.centerIn: parent
+                                    name: linkBtn.modelData.icon
+                                    size: Theme.fontSizeSmall
+                                    color: linkArea.containsMouse ? "#cdd6f4" : "#a6adc8"
+                                }
+                                MouseArea {
+                                    id: linkArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: Qt.openUrlExternally(linkBtn.modelData.url)
+                                }
                             }
                         }
                     }

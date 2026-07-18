@@ -91,4 +91,20 @@ PluginSettings {
             }
         ]
     }
+
+    StringSetting {
+        settingKey: "frontendProblemUrl"
+        label: "Lien « ouvrir le problème »"
+        description: "URL du frontend Zabbix ouverte au survol d'un problème. Placeholders : {base} (dérivé de l'URL d'API), {triggerid}, {eventid}. Vider pour désactiver ce lien."
+        placeholder: "{base}/tr_events.php?triggerid={triggerid}&eventid={eventid}"
+        defaultValue: "{base}/tr_events.php?triggerid={triggerid}&eventid={eventid}"
+    }
+
+    StringSetting {
+        settingKey: "frontendHostUrl"
+        label: "Lien « ouvrir le host »"
+        description: "URL du frontend Zabbix ouverte au survol (page du host). Placeholders : {base}, {hostid}. Vider pour désactiver ce lien."
+        placeholder: "{base}/zabbix.php?action=problem.view&hostids[]={hostid}"
+        defaultValue: "{base}/zabbix.php?action=problem.view&hostids[]={hostid}"
+    }
 }

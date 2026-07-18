@@ -6,6 +6,21 @@ versions en [SemVer]. Généré depuis les Conventional Commits par git-cliff.
 [Keep a Changelog]: https://keepachangelog.com/fr/1.1.0/
 [SemVer]: https://semver.org/lang/fr/
 
+## [0.5.0] - 2026-07-18
+
+### Fonctionnalités
+
+- **nix** : Dépendance xdg-open (xdg-utils) au runtime
+- **view** : Quick-links web au survol (problème, host)
+- **view** : Réglages templates d'URL frontend
+- **model** : Helpers d'URL frontend (base + templates)
+- **model** : Exposer triggerid et hostid dans le modèle
+
+### Documentation
+
+- Quick-links web (v0.5.0)
+- Plan v0.5.0 (quick-links web)
+
 ## [0.4.0] - 2026-07-18
 
 ### Fonctionnalités
@@ -21,6 +36,10 @@ versions en [SemVer]. Généré depuis les Conventional Commits par git-cliff.
 
 - Notifications v0.4.0
 - Plan v0.4.0 (notifications)
+
+### Divers
+
+- Préparer la release v0.4.0 (version + changelog)
 
 ## [0.3.0] - 2026-07-18
 

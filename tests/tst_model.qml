@@ -63,6 +63,30 @@ TestCase {
         compare(Format.notificationUrgency([]), "normal");
     }
 
+    function test_frontendBase() {
+        compare(Format.frontendBase("https://z.example.com/api_jsonrpc.php"), "https://z.example.com");
+        compare(Format.frontendBase("https://z.example.com/api_jsonrpc.php/"), "https://z.example.com");
+        compare(Format.frontendBase("https://z.example.com/"), "https://z.example.com");
+        compare(Format.frontendBase(""), "");
+    }
+
+    function test_buildFrontendUrl() {
+        var tplProblem = "{base}/tr_events.php?triggerid={triggerid}&eventid={eventid}";
+        compare(Format.buildFrontendUrl(tplProblem, {
+            "base": "https://z",
+            "triggerid": "103",
+            "eventid": "30"
+        }), "https://z/tr_events.php?triggerid=103&eventid=30");
+        // hostid vide (orphelin) → URL vide (icône masquée).
+        compare(Format.buildFrontendUrl("{base}/zabbix.php?action=problem.view&hostids[]={hostid}", {
+            "base": "https://z",
+            "hostid": ""
+        }), "");
+        compare(Format.buildFrontendUrl("", {
+            "base": "https://z"
+        }), ""); // template vide = désactivé
+    }
+
     function test_relativeTime() {
         var now = 1700000000000; // ms
         compare(Format.relativeTime(0, now), "");
@@ -108,8 +132,10 @@ TestCase {
                 }]
         };
         var m = Model.parseTriggers(res);
-        compare(m["5"], "web01");
-        compare(m["6"], "");
+        compare(m["5"].name, "web01");
+        compare(m["5"].hostid, "1");
+        compare(m["6"].name, ""); // hosts vide → name/hostid ""
+        compare(m["6"].hostid, "");
     }
 
     // Un triggerid inconnu de la map ne casse pas la jointure : host "".
@@ -124,6 +150,8 @@ TestCase {
                     "suppressed": false
                 }], {});
         compare(joined[0].host, "");
+        compare(joined[0].hostid, ""); // host inconnu → hostid ""
+        compare(joined[0].triggerid, "404"); // triggerid conservé
     }
 
     function test_worstSeverity() {

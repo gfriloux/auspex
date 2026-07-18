@@ -2,13 +2,13 @@
   "id": "auspex",
   "name": "Auspex",
   "description": "Supervision Zabbix — badge d'état et cockpit des problèmes actifs",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": "gfriloux",
   "type": "widget",
   "capabilities": ["dankbar-widget"],
   "component": "./src/view/AuspexWidget.qml",
   "settings": "./src/view/Settings.qml",
   "icon": "radar",
-  "requires": ["curl", "notify-send"],
+  "requires": ["curl", "notify-send", "xdg-open"],
   "permissions": ["process", "settings_read", "settings_write"]
 }

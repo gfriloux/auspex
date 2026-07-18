@@ -30,10 +30,13 @@ enrichie et des **états soignés** (vide / chargement / erreur / token refusé)
 cadence. À l'apparition d'un **nouveau problème**, auspex **prévient** : notification desktop
 (`notify-send` → daemon DMS, groupée si plusieurs d'un coup) et **pulse du badge** — avec
 **activation** et **seuil de sévérité** réglables. Les réglages (URL / token / intervalle /
-notifications) vivent dans DMS.
+notifications) vivent dans DMS. Au survol d'un problème, des **quick-links** ouvrent le
+**frontend web Zabbix** (page du problème, page du host) — liens sortants **non-mutants**, par
+**templates d'URL configurables** (défauts Zabbix 7.0, base dérivée de l'URL d'API).
 
-Reste à venir : **quick-links de délégation** (SSH host / frontend Zabbix / graph) dans un
-plan dédié. Fondations, invariants et direction visuelle : `DESIGN.md`.
+Reste à venir : les quick-links **SSH host** et **graphe** (résolution d'adresse / choix du
+graphe non triviaux) dans un plan dédié. Fondations, invariants et direction visuelle :
+`DESIGN.md`.
 
 ## Développement
 
