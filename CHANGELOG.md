@@ -40,6 +40,7 @@ versions en [SemVer]. Généré depuis les Conventional Commits par git-cliff.
 
 ### Documentation
 
+- Documenter le process de release
 - Plan outillage release (premier tag v0.3.0)
 - Cockpit direction C livré (v0.3.0)
 - Plan v0.3.0 (cockpit direction C)
@@ -52,8 +53,15 @@ versions en [SemVer]. Généré depuis les Conventional Commits par git-cliff.
 
 - Harnais golden (fixtures API -> modèle attendu)
 
+### Intégration continue
+
+- Workflow de release déclenché par tag
+- Workflow d'intégration (just ci sur push/PR)
+
 ### Divers
 
+- Configuration renovate (inputs flake + actions)
+- Git-cliff (cliff.toml) + CHANGELOG initial
 - Aligner plugin.json sur la version 0.3.0
 - Noms d'hôtes longs dans le mock (preview d'alignement réaliste)
 - Outils de dev — mock API Zabbix et barre isolée
