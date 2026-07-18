@@ -51,4 +51,44 @@ PluginSettings {
         description: "À activer uniquement si l'instance Zabbix présente un certificat auto-signé (curl -k)."
         defaultValue: false
     }
+
+    ToggleSetting {
+        settingKey: "notifyEnabled"
+        label: "Notifications"
+        description: "Afficher une notification desktop à l'apparition d'un nouveau problème (via notify-send)."
+        defaultValue: true
+    }
+
+    SelectionSetting {
+        settingKey: "notifyMinSeverity"
+        label: "Seuil de sévérité"
+        description: "Ne notifier (et ne pulser le badge) qu'à partir de cette sévérité."
+        defaultValue: "0"
+        options: [
+            {
+                "value": "0",
+                "label": "Toutes"
+            },
+            {
+                "value": "1",
+                "label": "Information et +"
+            },
+            {
+                "value": "2",
+                "label": "Warning et +"
+            },
+            {
+                "value": "3",
+                "label": "Average et +"
+            },
+            {
+                "value": "4",
+                "label": "High et +"
+            },
+            {
+                "value": "5",
+                "label": "Disaster seulement"
+            }
+        ]
+    }
 }
