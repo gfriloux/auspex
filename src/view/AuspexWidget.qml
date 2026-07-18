@@ -2,6 +2,7 @@
 // Pièce de barre : badge d'état (compteur + couleur de la pire sévérité). Le popout est le
 // cockpit direction C, dans Cockpit.qml. Les notifications (delta) arrivent en v0.4.0.
 import QtQuick
+import Quickshell
 import qs.Common
 import qs.Widgets
 import qs.Modules.Plugins
@@ -29,6 +30,28 @@ PluginComponent {
         token: root.cfgToken
         insecure: root.cfgInsecure
         intervalMs: root.cfgIntervalMs
+    }
+
+    // Nouveaux problèmes → effets de bord (le service n'émet qu'un signal de données).
+    Connections {
+        target: svc
+        function onProblemsAppeared(added) {
+            // Filtre par seuil de sévérité (pilote notif ET pulse).
+            const qualifying = added.filter(p => p.severity >= root.cfgNotifyMinSeverity);
+            if (qualifying.length === 0)
+                return;
+            root._notify(qualifying);
+        }
+    }
+
+    // Notification desktop via notify-send (→ daemon DMS). Gated par le toggle.
+    function _notify(qualifying) {
+        if (!root.cfgNotifyEnabled)
+            return;
+        const c = Format.notificationContent(qualifying, Date.now());
+        const urgency = Format.notificationUrgency(qualifying);
+        const icon = urgency === "critical" ? "dialog-error" : "dialog-warning";
+        Quickshell.execDetached(["notify-send", "-a", "Auspex", "-u", urgency, "-i", icon, c.title, c.body]);
     }
 
     // ---- Pièce de barre : icône radar + badge compteur coloré ----
