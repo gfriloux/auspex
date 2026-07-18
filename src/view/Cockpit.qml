@@ -182,9 +182,93 @@ PopoutComponent {
         }
     }
 
+    // Segments de la barre de résumé : sévérités présentes, du plus critique au plus calme
+    // (ordre de tri de la liste). `counts` porte les 6 niveaux ("0".."5"), on saute les nuls.
+    readonly property var severitySegments: {
+        let out = [];
+        const c = cockpit.service.counts;
+        for (let s = 5; s >= 0; s--) {
+            const n = c[String(s)] || 0;
+            if (n > 0)
+                out.push({
+                    "severity": s,
+                    "count": n
+                });
+        }
+        return out;
+    }
+
+    // ---- Barre de résumé segmentée par sévérité (signature direction C) ----
+    Item {
+        id: summary
+        width: parent.width
+        height: 52
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Theme.spacingM
+            anchors.rightMargin: Theme.spacingM
+            spacing: Theme.spacingL
+
+            // Grand compteur total.
+            StyledText {
+                Layout.alignment: Qt.AlignVCenter
+                text: String(cockpit.problemCount)
+                font.family: Theme.defaultMonoFontFamily
+                font.pixelSize: 20
+                font.bold: true
+                color: cockpit.problemCount > 0 ? "#cdd6f4" : "#a6e3a1"
+            }
+
+            // Barre segmentée : largeur ∝ compte, couleur = sévérité, transition douce.
+            Rectangle {
+                id: bar
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+                height: 12
+                radius: 6
+                clip: true
+                color: "#313244"
+
+                // RAS : barre verte pleine discrète.
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 6
+                    color: "#a6e3a1"
+                    opacity: 0.5
+                    visible: cockpit.problemCount === 0
+                }
+
+                Row {
+                    id: barRow
+                    anchors.fill: parent
+                    visible: cockpit.problemCount > 0
+
+                    Repeater {
+                        model: cockpit.severitySegments
+
+                        delegate: Rectangle {
+                            required property var modelData
+                            height: barRow.height
+                            width: cockpit.problemCount > 0 ? barRow.width * modelData.count / cockpit.problemCount : 0
+                            color: Format.severityColor(modelData.severity)
+
+                            Behavior on width {
+                                NumberAnimation {
+                                    duration: 500
+                                    easing.type: Easing.InOutQuad
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     Item {
         width: parent.width
-        height: cockpit.owner.popoutHeight - header.height - Theme.spacingXL
+        height: cockpit.owner.popoutHeight - header.height - summary.height - Theme.spacingXL
 
         // État vide (aucun problème connu).
         Column {
