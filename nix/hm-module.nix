@@ -24,7 +24,8 @@ in {
     # Le plugin est découvert par DMS dans ~/.config/DankMaterialShell/plugins/.
     xdg.configFile."DankMaterialShell/plugins/Auspex".source = plugin;
 
-    # curl est requis au runtime : le service l'exécute pour parler à l'API Zabbix.
-    home.packages = [pkgs.curl];
+    # Deps runtime : curl (poll de l'API Zabbix) et notify-send (notifications desktop,
+    # fourni par libnotify).
+    home.packages = [pkgs.curl pkgs.libnotify];
   };
 }

@@ -9,6 +9,6 @@
   "component": "./src/view/AuspexWidget.qml",
   "settings": "./src/view/Settings.qml",
   "icon": "radar",
-  "requires": ["curl"],
+  "requires": ["curl", "notify-send"],
   "permissions": ["process", "settings_read", "settings_write"]
 }
