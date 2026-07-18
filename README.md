@@ -45,8 +45,9 @@ just ci        # porte complète : fmt-check + lint + test
 ```
 
 Autres cibles : `just test` (golden + Qt Quick Test), `just fmt` (formate le QML),
-`just bless` (régénère les goldens — relire le diff). Le `Justfile` est la **seule**
-définition des portes de qualité ; pre-commit et la CI l'appellent.
+`just bless` (régénère les goldens — relire le diff), `just changelog` (régénère
+`CHANGELOG.md` via git-cliff). Le `Justfile` est la **seule** définition des portes de
+qualité ; pre-commit et la **CI GitHub Actions** (`.github/workflows/ci.yml`) l'appellent.
 
 ## Structure du code
 
@@ -90,6 +91,24 @@ réglages pour renseigner l'URL et le token.
 auspex est **lecture seule** : le token n'a besoin d'aucun droit d'écriture. Il est envoyé
 par curl en header `Authorization: Bearer` (visible du seul utilisateur courant dans la
 liste des processus — acceptable pour un token read-only ; un durcissement reste possible).
+
+## Release
+
+Versionnage **SemVer**, changelog dérivé des **Conventional Commits** (git-cliff). Le tag
+est posé par le **mainteneur** (politique git hybride) et déclenche la publication.
+
+1. Bumper `plugin.json` (`version`) sur la nouvelle version.
+2. `just changelog` pour rafraîchir `CHANGELOG.md`, relire le diff, committer.
+3. Merger sur `main`, puis :
+
+   ```bash
+   git tag -a vX.Y.Z -m "vX.Y.Z — <titre>"
+   git push origin vX.Y.Z
+   ```
+
+Le push du tag déclenche `.github/workflows/release.yml` : git-cliff génère les notes de la
+version et une **release GitHub** est créée. Les dépendances (inputs du flake, actions) sont
+tenues à jour par **Renovate**.
 
 ## Licence
 

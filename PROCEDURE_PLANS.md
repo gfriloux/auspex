@@ -166,8 +166,8 @@ just ci          # les trois d'affilée
 - **Git hybride** : branche + commits atomiques par Claude ; merge/push/tag par l'utilisateur.
 - **Nix** : toujours `nix develop --command …` pour les commandes non interactives.
 - **`tmp/`** : scratch non commité (handoffs design, notes, sorties de travail).
-- **Outillage release** (`renovate`, `git-cliff`, workflow release) : ajouté au **premier
-  tag**, pas avant (cf. README.md).
+- **Outillage release** (`renovate`, `git-cliff`, CI + workflow release) : **en place depuis
+  v0.3.0** (cf. README.md §Release). Le tag reste posé par l'utilisateur.
 
 ---
 
