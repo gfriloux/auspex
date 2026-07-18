@@ -63,6 +63,30 @@ TestCase {
         compare(Format.notificationUrgency([]), "normal");
     }
 
+    function test_frontendBase() {
+        compare(Format.frontendBase("https://z.example.com/api_jsonrpc.php"), "https://z.example.com");
+        compare(Format.frontendBase("https://z.example.com/api_jsonrpc.php/"), "https://z.example.com");
+        compare(Format.frontendBase("https://z.example.com/"), "https://z.example.com");
+        compare(Format.frontendBase(""), "");
+    }
+
+    function test_buildFrontendUrl() {
+        var tplProblem = "{base}/tr_events.php?triggerid={triggerid}&eventid={eventid}";
+        compare(Format.buildFrontendUrl(tplProblem, {
+            "base": "https://z",
+            "triggerid": "103",
+            "eventid": "30"
+        }), "https://z/tr_events.php?triggerid=103&eventid=30");
+        // hostid vide (orphelin) → URL vide (icône masquée).
+        compare(Format.buildFrontendUrl("{base}/zabbix.php?action=problem.view&hostids[]={hostid}", {
+            "base": "https://z",
+            "hostid": ""
+        }), "");
+        compare(Format.buildFrontendUrl("", {
+            "base": "https://z"
+        }), ""); // template vide = désactivé
+    }
+
     function test_relativeTime() {
         var now = 1700000000000; // ms
         compare(Format.relativeTime(0, now), "");

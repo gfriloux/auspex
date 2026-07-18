@@ -123,3 +123,33 @@ function notificationUrgency(added) {
     }
     return "normal";
 }
+
+// URL de base du frontend Zabbix, dérivée de l'URL d'API : retire le suffixe
+// /api_jsonrpc.php (et un éventuel / final). Pur. Alimente le placeholder {base}.
+function frontendBase(apiUrl) {
+    if (!apiUrl)
+        return "";
+    var base = String(apiUrl).replace(/\/api_jsonrpc\.php\/?$/, "");
+    return base.replace(/\/$/, "");
+}
+
+// Construit une URL de quick-link en substituant les placeholders d'un template :
+// {base} {hostid} {triggerid} {eventid}. Retourne "" si le template est vide OU si un
+// placeholder référencé n'a pas de valeur (→ icône masquée côté vue). Pur.
+function buildFrontendUrl(template, fields) {
+    if (!template)
+        return "";
+    fields = fields || {};
+    var keys = ["base", "hostid", "triggerid", "eventid"];
+    var out = template;
+    for (var i = 0; i < keys.length; i++) {
+        var token = "{" + keys[i] + "}";
+        if (out.indexOf(token) !== -1) {
+            var val = fields[keys[i]];
+            if (val === undefined || val === null || val === "")
+                return ""; // placeholder requis mais absent → pas de lien
+            out = out.split(token).join(String(val));
+        }
+    }
+    return out;
+}
