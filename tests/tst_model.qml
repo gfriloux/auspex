@@ -27,6 +27,42 @@ TestCase {
         compare(Format.connectionColor("zzz"), "#6c7086"); // repli
     }
 
+    function test_notificationContent_single() {
+        var now = 1700000000000; // ms
+        var c = Format.notificationContent([{
+                "host": "web01",
+                "trigger": "CPU élevé",
+                "severity": 4,
+                "since": 1699999999 // ~1 s → « à l'instant »
+            }], now);
+        compare(c.title, "web01 · CPU élevé");
+        compare(c.body, "High · à l'instant");
+    }
+
+    function test_notificationContent_grouped() {
+        var c = Format.notificationContent([{
+                "severity": 5
+            }, {
+                "severity": 4
+            }, {
+                "severity": 4
+            }], 1700000000000);
+        compare(c.title, "3 nouveaux problèmes");
+        compare(c.body, "1 Disaster · 2 High"); // décroissant, non nuls
+    }
+
+    function test_notificationUrgency() {
+        compare(Format.notificationUrgency([{
+            "severity": 2
+        }]), "normal");
+        compare(Format.notificationUrgency([{
+            "severity": 2
+        }, {
+            "severity": 4
+        }]), "critical"); // High présent
+        compare(Format.notificationUrgency([]), "normal");
+    }
+
     function test_relativeTime() {
         var now = 1700000000000; // ms
         compare(Format.relativeTime(0, now), "");
