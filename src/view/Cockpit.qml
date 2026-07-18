@@ -384,16 +384,50 @@ PopoutComponent {
                 width: ListView.view.width
                 height: 44
 
+                HoverHandler {
+                    id: rowHover
+                }
+
+                // Fond de survol.
                 Rectangle {
-                    id: sevBar
-                    width: 3
-                    height: parent.height
-                    color: del.sevColor
+                    anchors.fill: parent
+                    color: "#45475a"
+                    opacity: rowHover.hovered ? 0.42 : 0
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 120
+                        }
+                    }
+                }
+
+                // Point de sévérité 9px + halo tinté.
+                Item {
+                    id: dotBox
+                    width: 26
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 17
+                        height: 17
+                        radius: 8.5
+                        color: del.sevColor
+                        opacity: 0.16
+                    }
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 9
+                        height: 9
+                        radius: 4.5
+                        color: del.sevColor
+                    }
                 }
 
                 RowLayout {
-                    anchors.left: sevBar.right
-                    anchors.leftMargin: 11
+                    anchors.left: dotBox.right
                     anchors.right: parent.right
                     anchors.rightMargin: 12
                     anchors.verticalCenter: parent.verticalCenter
@@ -415,6 +449,25 @@ PopoutComponent {
                         elide: Text.ElideRight
                         font.pixelSize: Theme.fontSizeSmall
                         color: del.muted ? "#7f849c" : "#cdd6f4"
+                    }
+                    // Icônes d'état : acquitté / supprimé (masquées sinon → pas de gap).
+                    Row {
+                        Layout.alignment: Qt.AlignVCenter
+                        spacing: 4
+                        visible: del.modelData.acknowledged || del.modelData.suppressed
+
+                        DankIcon {
+                            visible: del.modelData.acknowledged
+                            name: "task_alt"
+                            size: Theme.fontSizeSmall
+                            color: "#7f849c"
+                        }
+                        DankIcon {
+                            visible: del.modelData.suppressed
+                            name: "notifications_off"
+                            size: Theme.fontSizeSmall
+                            color: "#7f849c"
+                        }
                     }
                     // Colonne sévérité à largeur fixe → chips alignés verticalement.
                     Rectangle {
@@ -449,11 +502,33 @@ PopoutComponent {
                     }
                 }
 
+                // Séparateur 1px en dégradé (fondu aux bords) ; s'efface au survol.
                 Rectangle {
                     anchors.bottom: parent.bottom
                     width: parent.width
                     height: 1
-                    color: "#26283a"
+                    opacity: rowHover.hovered ? 0 : 1
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 120
+                        }
+                    }
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop {
+                            position: 0
+                            color: "transparent"
+                        }
+                        GradientStop {
+                            position: 0.5
+                            color: "#45475a"
+                        }
+                        GradientStop {
+                            position: 1
+                            color: "transparent"
+                        }
+                    }
                 }
             }
         }
