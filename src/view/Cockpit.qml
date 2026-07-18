@@ -57,14 +57,27 @@ PopoutComponent {
         font.pixelSize: Theme.fontSizeSmall
         font.bold: true
     }
-    readonly property real hostColWidth: {
+    // Calculée impérativement à chaque changement de liste : une binding déclarative
+    // bouclerait (la même expression écrit hostMetrics.text ET lit hostMetrics.advanceWidth,
+    // donc chaque écriture réinvalide la lecture → binding loop).
+    property real hostColWidth: 48
+    function measureHostCol() {
+        if (!service)
+            return;
         let w = 0;
         for (let i = 0; i < service.problems.length; i++) {
             hostMetrics.text = service.problems[i].host;
             if (hostMetrics.advanceWidth > w)
                 w = hostMetrics.advanceWidth;
         }
-        return Math.min(Math.max(w + 4, 48), 360);
+        hostColWidth = Math.min(Math.max(w + 4, 48), 360);
+    }
+    Component.onCompleted: measureHostCol()
+    Connections {
+        target: cockpit.service
+        function onProblemsChanged() {
+            cockpit.measureHostCol();
+        }
     }
 
     // En-tête par défaut de PopoutComponent masqué : on porte notre propre en-tête
