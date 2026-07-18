@@ -40,8 +40,14 @@ PopoutComponent {
     // Chargement = 1er poll sans état connu (on ne masque pas une liste déjà remplie).
     readonly property bool isLoading: service && service.connectionStatus === "polling" && problemCount === 0
 
-    // Horloge pour rafraîchir « il y a N min ».
+    // Horloge pour rafraîchir « il y a N min » (coarse : les âges bougent lentement).
     property double now: Date.now()
+    // Tick 1s pour le compte à rebours du pied (n'existe que popout ouvert).
+    property double nowTick: Date.now()
+
+    // Cadence de poll pour le pied (−1 si aucun poll encore effectué).
+    readonly property int secsSinceLast: (service && service.lastPollAt > 0) ? Math.max(0, Math.floor((nowTick - service.lastPollAt) / 1000)) : -1
+    readonly property int secsToNext: (service && service.lastPollAt > 0) ? Math.max(0, Math.round(service.intervalMs / 1000) - secsSinceLast) : -1
 
     // Largeur de la colonne host = celle du nom le plus long (auto-fit), bornée.
     // Même valeur pour toutes les lignes → alignement, sans gaspiller d'espace.
@@ -69,6 +75,12 @@ PopoutComponent {
         running: true
         repeat: true
         onTriggered: cockpit.now = Date.now()
+    }
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: cockpit.nowTick = Date.now()
     }
 
     // ---- En-tête télémétrie (signature direction C) ----
@@ -352,7 +364,7 @@ PopoutComponent {
     Item {
         id: body
         width: parent.width
-        height: cockpit.owner.popoutHeight - header.height - summary.height - legend.height - Theme.spacingXL
+        height: cockpit.owner.popoutHeight - header.height - summary.height - legend.height - footer.height - Theme.spacingXL
 
         // ---- Bandeau erreur / token refusé (dernier état connu conservé dessous) ----
         Rectangle {
@@ -660,6 +672,33 @@ PopoutComponent {
                     }
                 }
             }
+        }
+    }
+
+    // ---- Pied de cadence ----
+    Rectangle {
+        id: footer
+        width: parent.width
+        height: 28
+        color: Qt.rgba(24 / 255, 24 / 255, 37 / 255, 0.55)
+
+        StyledText {
+            anchors.left: parent.left
+            anchors.leftMargin: Theme.spacingM
+            anchors.verticalCenter: parent.verticalCenter
+            text: "problem.get · trigger.get"
+            font.family: Theme.defaultMonoFontFamily
+            font.pixelSize: Theme.fontSizeSmall
+            color: "#6c7086"
+        }
+        StyledText {
+            anchors.right: parent.right
+            anchors.rightMargin: Theme.spacingM
+            anchors.verticalCenter: parent.verticalCenter
+            text: cockpit.secsSinceLast < 0 ? "en attente du 1er poll…" : ("last poll " + cockpit.secsSinceLast + " s · next in " + cockpit.secsToNext + " s")
+            font.family: Theme.defaultMonoFontFamily
+            font.pixelSize: Theme.fontSizeSmall
+            color: "#6c7086"
         }
     }
 }
