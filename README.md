@@ -1,119 +1,117 @@
 # auspex
 
-Widget de **supervision Zabbix** pour la barre de bureau **Quickshell /
-DankMaterialShell**. Un badge d'état dans la barre (compteur de problèmes + couleur de la
-sévérité la plus haute) et un popup *cockpit* listant les problèmes actifs ; auspex
-**notifie** à l'apparition d'un nouveau problème.
+**Zabbix monitoring** widget for the **Quickshell / DankMaterialShell** desktop bar. A
+status badge in the bar (problem count + colour of the highest severity) and a *cockpit*
+popup listing active problems; auspex **notifies** you when a new problem shows up.
 
-Un [Nagstamon](https://nagstamon.de/) repensé en plugin DMS natif, **orienté Zabbix 7.0**.
-Données via l'**API JSON-RPC** (HTTP, **lecture seule**, polling) — **rien à installer
-côté serveur**, un simple accès API en lecture suffit.
+A [Nagstamon](https://nagstamon.de/) rethought as a native DMS plugin, **Zabbix 7.0
+oriented**. Data comes from the **JSON-RPC API** (HTTP, **read-only**, polling) — **nothing
+to install server-side**, a plain read-only API access is enough.
 
-Esprit et invariants : [`DESIGN.md`](./DESIGN.md). Méthode de travail :
-[`PROCEDURE_PLANS.md`](./PROCEDURE_PLANS.md) et [`CLAUDE.md`](./CLAUDE.md).
+Spirit and invariants: [`DESIGN.md`](./DESIGN.md). Working method:
+[`PROCEDURE_PLANS.md`](./PROCEDURE_PLANS.md) and [`CLAUDE.md`](./CLAUDE.md).
 
-## Pile
+## Stack
 
-- **Vue** : QML / Qt Quick (Quickshell), Material 3, Catppuccin Mocha.
-- **Données** : `query` (corps JSON-RPC, purs) → service `Zabbix.qml` (HTTP + header
-  `Authorization: Bearer`) → `model` (problèmes, pur/testable) → `view` (QML).
-- **Auth** : API token Zabbix rattaché à un utilisateur **read-only** (le token vit dans
-  la config/le service, jamais dans les couches données ni les tests).
+- **View**: QML / Qt Quick (Quickshell), Material 3, Catppuccin Mocha.
+- **Data**: `query` (JSON-RPC bodies, pure) → `Zabbix.qml` service (HTTP + `Authorization:
+  Bearer` header) → `model` (problems, pure/testable) → `view` (QML).
+- **Auth**: Zabbix API token attached to a **read-only** user (the token lives in the
+  config/service, never in the data layers nor in the tests).
 
-## État
+## Status
 
-**v0.4.0 — notifications.** auspex est **installable et utilisable** : un service poll une
-vraie instance Zabbix 7.0 (HTTP via curl), un **badge de barre** affiche l'état (compteur +
-couleur de la pire sévérité), le **popout cockpit** offre l'en-tête télémétrie, la **barre de
-résumé segmentée** par sévérité, une **légende cliquable** qui filtre la liste, une liste
-enrichie et des **états soignés** (vide / chargement / erreur / token refusé) plus un pied de
-cadence. À l'apparition d'un **nouveau problème**, auspex **prévient** : notification desktop
-(`notify-send` → daemon DMS, groupée si plusieurs d'un coup) et **pulse du badge** — avec
-**activation** et **seuil de sévérité** réglables. Les réglages (URL / token / intervalle /
-notifications) vivent dans DMS. Au survol d'un problème, des **quick-links** ouvrent le
-**frontend web Zabbix** (page du problème, page du host) — liens sortants **non-mutants**, par
-**templates d'URL configurables** (défauts Zabbix 7.0, base dérivée de l'URL d'API).
+**v0.5.0 — web quick-links.** auspex is **installable and usable**: a service polls a real
+Zabbix 7.0 instance (HTTP through curl), a **bar badge** shows the state (count + colour of
+the worst severity), the **cockpit popout** provides the telemetry header, the **summary bar
+segmented** by severity, a **clickable legend** that filters the list, an enriched list and
+**polished states** (empty / loading / error / token rejected) plus a polling-cadence footer.
+When a **new problem** appears, auspex **warns** you: desktop notification (`notify-send` →
+DMS daemon, grouped when several arrive at once) and **badge pulse** — with configurable
+**enable switch** and **severity threshold**. Settings (URL / token / interval /
+notifications) live in DMS. Hovering a problem reveals **quick-links** that open the **Zabbix
+web frontend** (problem page, host page) — **non-mutating** outbound links, built from
+**configurable URL templates** (Zabbix 7.0 defaults, base derived from the API URL).
 
-Reste à venir : les quick-links **SSH host** et **graphe** (résolution d'adresse / choix du
-graphe non triviaux) dans un plan dédié. Fondations, invariants et direction visuelle :
+Still to come: the **SSH host** and **graph** quick-links (address resolution / graph
+selection are non-trivial) in a dedicated plan. Foundations, invariants and visual direction:
 `DESIGN.md`.
 
-## Développement
+## Development
 
-Toujours entrer le dev shell Nix (fournit quickshell, qmllint/qmlformat/qmltestrunner,
-just) :
+Always enter the Nix dev shell first (it provides quickshell, qmllint/qmlformat/
+qmltestrunner, just):
 
 ```bash
 nix develop
-just ci        # porte complète : fmt-check + lint + test
+just ci        # full gate: fmt-check + lint + test
 ```
 
-Autres cibles : `just test` (golden + Qt Quick Test), `just fmt` (formate le QML),
-`just bless` (régénère les goldens — relire le diff), `just changelog` (régénère
-`CHANGELOG.md` via git-cliff). Le `Justfile` est la **seule** définition des portes de
-qualité ; pre-commit et la **CI GitHub Actions** (`.github/workflows/ci.yml`) l'appellent.
+Other targets: `just test` (golden + Qt Quick Test), `just fmt` (formats the QML),
+`just bless` (regenerates the goldens — review the diff), `just changelog` (regenerates
+`CHANGELOG.md` through git-cliff). The `Justfile` is the **only** definition of the quality
+gates; pre-commit and **GitHub Actions CI** (`.github/workflows/ci.yml`) both call it.
 
-## Structure du code
+## Code layout
 
 ```
-src/query/queries.js     ← builders de corps JSON-RPC (problem.get, trigger.get)
-src/model/problems.js    ← parsing, jointure host, agrégats, delta (pur, golden-testé)
-src/model/format.js      ← helpers de présentation (severityLabel, relativeTime)
-src/view/Zabbix.qml      ← service : poll HTTP (curl/Process) → modèle
-src/view/AuspexWidget.qml← badge de barre (PluginComponent) + montage du cockpit
-src/view/Cockpit.qml     ← popout cockpit direction C (télémétrie, résumé, légende, liste)
-src/view/Settings.qml    ← réglages (URL, token, intervalle, TLS)
-tests/                   ← fixtures API figées + goldens (modèle attendu)
-.claude/plans/           ← plans de version (plan.md, manual_tests.md, phase0_results.md)
+src/query/queries.js     ← JSON-RPC body builders (problem.get, trigger.get)
+src/model/problems.js    ← parsing, host join, aggregates, delta (pure, golden-tested)
+src/model/format.js      ← presentation helpers (severityLabel, relativeTime)
+src/view/Zabbix.qml      ← service: HTTP polling (curl/Process) → model
+src/view/AuspexWidget.qml← bar badge (PluginComponent) + cockpit mounting
+src/view/Cockpit.qml     ← cockpit popout, direction C (telemetry, summary, legend, list)
+src/view/Settings.qml    ← settings (URL, token, interval, TLS)
+tests/                   ← frozen API fixtures + goldens (expected model)
+.claude/plans/           ← per-version plans (plan.md, manual_tests.md, phase0_results.md)
 ```
 
 ## Installation
 
-Via home-manager, en tant que plugin DankMaterialShell :
+Through home-manager, as a DankMaterialShell plugin:
 
 ```nix
 # flake.nix (inputs)
 inputs.auspex.url = "github:gfriloux/auspex";
 
-# config home-manager
+# home-manager config
 imports = [inputs.auspex.homeModules.default];
 programs.auspex.enable = true;
 ```
 
-Puis, dans DMS : **Settings → Plugins → Auspex** pour activer le widget, et son panneau de
-réglages pour renseigner l'URL et le token.
+Then, in DMS: **Settings → Plugins → Auspex** to enable the widget, and its settings panel
+to fill in the URL and the token.
 
-## Configuration (côté Zabbix)
+## Configuration (Zabbix side)
 
-1. Créer un **utilisateur Zabbix en rôle lecture seule** (aucun droit d'écriture).
-2. Lui générer un **API token** (Users → API tokens).
-3. Dans les réglages du plugin : renseigner l'**URL** de l'endpoint JSON-RPC
-   (`https://<zabbix>/api_jsonrpc.php`), coller le **token**, régler l'**intervalle** de
-   poll. Cocher « Certificat TLS non vérifié » seulement si l'instance a un certif
-   auto-signé.
+1. Create a **Zabbix user with a read-only role** (no write permission at all).
+2. Generate an **API token** for it (Users → API tokens).
+3. In the plugin settings: fill in the **URL** of the JSON-RPC endpoint
+   (`https://<zabbix>/api_jsonrpc.php`), paste the **token**, set the polling **interval**.
+   Tick "Unverified TLS certificate" only if the instance uses a self-signed certificate.
 
-auspex est **lecture seule** : le token n'a besoin d'aucun droit d'écriture. Il est envoyé
-par curl en header `Authorization: Bearer` (visible du seul utilisateur courant dans la
-liste des processus — acceptable pour un token read-only ; un durcissement reste possible).
+auspex is **read-only**: the token needs no write permission. It is sent by curl in an
+`Authorization: Bearer` header (visible only to the current user in the process list —
+acceptable for a read-only token; hardening remains possible).
 
 ## Release
 
-Versionnage **SemVer**, changelog dérivé des **Conventional Commits** (git-cliff). Le tag
-est posé par le **mainteneur** (politique git hybride) et déclenche la publication.
+**SemVer** versioning, changelog derived from **Conventional Commits** (git-cliff). The tag
+is set by the **maintainer** (hybrid git policy) and triggers the publication.
 
-1. Bumper `plugin.json` (`version`) sur la nouvelle version.
-2. `just changelog` pour rafraîchir `CHANGELOG.md`, relire le diff, committer.
-3. Merger sur `main`, puis :
+1. Bump `plugin.json` (`version`) to the new version.
+2. `just changelog` to refresh `CHANGELOG.md`, review the diff, commit.
+3. Merge onto `main`, then:
 
    ```bash
-   git tag -a vX.Y.Z -m "vX.Y.Z — <titre>"
+   git tag -a vX.Y.Z -m "vX.Y.Z — <title>"
    git push origin vX.Y.Z
    ```
 
-Le push du tag déclenche `.github/workflows/release.yml` : git-cliff génère les notes de la
-version et une **release GitHub** est créée. Les dépendances (inputs du flake, actions) sont
-tenues à jour par **Renovate**.
+Pushing the tag triggers `.github/workflows/release.yml`: git-cliff generates the release
+notes and a **GitHub release** is created. Dependencies (flake inputs, actions) are kept up
+to date by **Renovate**.
 
-## Licence
+## License
 
-Voir [`LICENSE`](./LICENSE).
+See [`LICENSE`](./LICENSE).
