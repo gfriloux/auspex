@@ -48,9 +48,6 @@
             qt6.qtdeclarative # qmllint, qmlformat, qmltestrunner
             qt6.qtbase
 
-            # Runtime du service (poll HTTP de l'API Zabbix)
-            curl
-
             # Dev : mock d'API Zabbix (just mock) + instance DMS isolée (just dev-bar)
             python3
             jq
