@@ -4,6 +4,23 @@ Ce que les portes ne couvrent pas : le vrai HTTP, le rendu DMS/Wayland, le compo
 Deux terminaux : `just mock [scenario] [port]` d'un côté, `just dev-bar` de l'autre.
 URL du plugin : `http://127.0.0.1:8384/api_jsonrpc.php`, token quelconque.
 
+## Déjà vérifié automatiquement (banc d'essai jetable, hors dépôt)
+
+`Zabbix.qml` n'importe plus que QtQuick + les `.js` : il s'instancie donc dans
+`qmltestrunner` hors Quickshell. Un banc d'essai scratch a fait tourner le **vrai service**
+contre le **vrai mock** et des serveurs jetables — 5/5 :
+
+| Scénario | Résultat |
+|---|---|
+| mock `ok` | `live`, 8 problèmes, jointure host faite — **le `Content-Type` avec charset passe le contrôle façon Zabbix** |
+| port fermé | `Zabbix injoignable (connexion refusée)`, `_busy` libéré |
+| serveur qui ne répond jamais | `Zabbix injoignable (délai dépassé)` au watchdog, `_busy` libéré |
+| mock `unauthorized` | statut `unauthorized` |
+| HTTPS **certificat auto-signé** | `… réseau ou certificat TLS non approuvé …`, en < 2 s (rejet à la poignée de main, bien avant le watchdog) |
+
+Ça ne dispense d'aucun test ci-dessous : le rendu DMS et la **vraie instance** restent
+non couverts. Ça les cible.
+
 ## Le point qui décide (D5)
 
 - [ ] **Contre une vraie instance Zabbix 7.0** : le poll aboutit malgré le
