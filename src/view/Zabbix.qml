@@ -1,15 +1,19 @@
-// Service Zabbix : poll l'API JSON-RPC 7.0 via curl (Process), transforme avec la couche
+// Service Zabbix : poll l'API JSON-RPC 7.0 en XMLHttpRequest, transforme avec la couche
 // données (query/model), expose le modèle + un statut de connexion. Lecture seule.
 //
 // Deux appels enchaînés : problem.get → (triggerids) → trigger.get(selectHosts), puis
-// jointure problème→host dans le model. L'auth (Bearer) et le Content-Type sont passés en
-// headers curl. Le token n'apparaît en clair que dans l'argv du process curl (visible du
-// seul utilisateur courant, comme un token read-only) : un durcissement (config file) est
-// possible plus tard sans changer l'interface.
+// jointure problème→host dans le model. L'auth (Bearer) et le Content-Type sont posés en
+// headers de la requête : le token ne quitte jamais le processus DMS.
+//
+// Deux limites du runtime QML dictent la forme de ce fichier :
+//   - `xhr.timeout` n'existe pas (XHR niveau 1) → le délai est tenu par `timeoutTimer`,
+//     qui abandonne la requête en cours (`abort()`).
+//   - un échec réseau ne remonte qu'un `status = 0`, sans cause → le libellé est dérivé du
+//     schéma de l'URL (cf. `Format.networkErrorMessage`), pas d'un diagnostic qu'on n'a pas.
 import QtQuick
-import Quickshell.Io
 import "../query/queries.js" as Queries
 import "../model/problems.js" as Model
+import "../model/format.js" as Format
 
 QtObject {
     id: root
@@ -17,8 +21,8 @@ QtObject {
     // --- Config (injectée par le widget depuis pluginData) ---
     property string url: ""
     property string token: ""
-    property bool insecure: false // certif auto-signé → curl -k
     property int intervalMs: 30000
+    property int timeoutMs: 10000 // abandon d'une requête sans réponse
     property var severities: [] // filtre optionnel (0-5) ; vide = toutes
 
     // --- Sortie (modèle de domaine) ---
@@ -40,6 +44,10 @@ QtObject {
     property var _partial: []
     property bool _busy: false
 
+    // Requête en vol. Sert aussi de jeton d'identité : une requête abandonnée est mise à
+    // null ici, ce qui fait ignorer sa réponse tardive.
+    property var _xhr: null
+
     // État précédent + drapeau de baseline pour le delta (cf. _commit).
     property var _prevProblems: []
     property bool _hasBaseline: false
@@ -54,16 +62,53 @@ QtObject {
     }
     onUrlChanged: reconfigure()
     onTokenChanged: reconfigure()
-    onInsecureChanged: reconfigure()
 
     // ---- Poll ----
 
-    function _curlCmd(body) {
-        var cmd = ["curl", "-s", "--max-time", "10", "-H", "Content-Type: application/json", "-H", "Authorization: Bearer " + root.token];
-        if (root.insecure)
-            cmd.push("-k");
-        cmd.push("-d", JSON.stringify(body), root.url);
-        return cmd;
+    // POST JSON-RPC. `onOk` reçoit le corps de la réponse ; tout échec aboutit à `_fail`.
+    function _post(body, onOk) {
+        var xhr = new XMLHttpRequest();
+        root._xhr = xhr;
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState !== XMLHttpRequest.DONE)
+                return;
+            if (root._xhr !== xhr)
+                return; // requête abandonnée entre-temps : sa réponse ne vaut plus rien
+            root._xhr = null;
+            root.timeoutTimer.stop();
+            if (xhr.status === 200) {
+                onOk(xhr.responseText);
+                return;
+            }
+            root._fail(Format.networkErrorMessage(xhr.status === 0 ? "unreachable" : "http", root.url, xhr.status));
+        };
+        try {
+            xhr.open("POST", root.url);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Authorization", "Bearer " + root.token);
+            root.timeoutTimer.restart();
+            xhr.send(JSON.stringify(body));
+        } catch (e) {
+            root._xhr = null;
+            root.timeoutTimer.stop();
+            root._fail("URL de l'API invalide");
+        }
+    }
+
+    // Faute de `xhr.timeout` dans le runtime QML, c'est ce Timer qui borne l'attente. Il
+    // décide de l'échec lui-même (plutôt que de s'en remettre au DONE provoqué par abort) :
+    // le service ne peut pas rester coincé en `_busy` si l'abandon ne rappelle personne.
+    property Timer timeoutTimer: Timer {
+        interval: root.timeoutMs
+        repeat: false
+        onTriggered: {
+            if (!root._xhr)
+                return;
+            var pending = root._xhr;
+            root._xhr = null;
+            pending.abort();
+            root._fail(Format.networkErrorMessage("timeout", root.url, 0));
+        }
     }
 
     function poll() {
@@ -71,31 +116,13 @@ QtObject {
             return;
         root._busy = true;
         root.connectionStatus = "polling";
-        probProc.command = root._curlCmd(Queries.problemGet({
+        root._post(Queries.problemGet({
             "severities": root.severities
-        }));
-        probProc.running = true;
+        }), root._onProblems);
     }
 
     // 1er appel : problem.get.
-    property Process probProc: Process {
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: root._onProblems(text)
-        }
-        stderr: StdioCollector {
-            onStreamFinished: if (text.trim())
-                console.warn("auspex curl:", text.trim())
-        }
-        onExited: code => {
-            if (code !== 0)
-                root._fail("Zabbix injoignable (curl " + code + ")");
-        }
-    }
-
     function _onProblems(text) {
-        if (!text || !text.trim())
-            return; // échec réseau → géré par onExited
         var res = root._parse(text);
         if (res === null)
             return;
@@ -113,25 +140,11 @@ QtObject {
             root._commit([]); // aucun problème : pas de 2e appel
             return;
         }
-        trigProc.command = root._curlCmd(Queries.triggerGetWithHosts(triggerids));
-        trigProc.running = true;
+        root._post(Queries.triggerGetWithHosts(triggerids), root._onTriggers);
     }
 
     // 2e appel : trigger.get(selectHosts) → jointure.
-    property Process trigProc: Process {
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: root._onTriggers(text)
-        }
-        onExited: code => {
-            if (code !== 0)
-                root._fail("Zabbix injoignable (curl " + code + ")");
-        }
-    }
-
     function _onTriggers(text) {
-        if (!text || !text.trim())
-            return;
         var res = root._parse(text);
         if (res === null)
             return;

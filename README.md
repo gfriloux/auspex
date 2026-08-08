@@ -22,7 +22,7 @@ Spirit and invariants: [`DESIGN.md`](./DESIGN.md). Working method:
 ## Status
 
 **v0.5.0 — web quick-links.** auspex is **installable and usable**: a service polls a real
-Zabbix 7.0 instance (HTTP through curl), a **bar badge** shows the state (count + colour of
+Zabbix 7.0 instance (HTTP from the plugin itself), a **bar badge** shows the state (count + colour of
 the worst severity), the **cockpit popout** provides the telemetry header, the **summary bar
 segmented** by severity, a **clickable legend** that filters the list, an enriched list and
 **polished states** (empty / loading / error / token rejected) plus a polling-cadence footer.
@@ -58,10 +58,10 @@ gates; pre-commit and **GitHub Actions CI** (`.github/workflows/ci.yml`) both ca
 src/query/queries.js     ← JSON-RPC body builders (problem.get, trigger.get)
 src/model/problems.js    ← parsing, host join, aggregates, delta (pure, golden-tested)
 src/model/format.js      ← presentation helpers (severityLabel, relativeTime)
-src/view/Zabbix.qml      ← service: HTTP polling (curl/Process) → model
+src/view/Zabbix.qml      ← service: HTTP polling (XMLHttpRequest) → model
 src/view/AuspexWidget.qml← bar badge (PluginComponent) + cockpit mounting
 src/view/Cockpit.qml     ← cockpit popout, direction C (telemetry, summary, legend, list)
-src/view/Settings.qml    ← settings (URL, token, interval, TLS)
+src/view/Settings.qml    ← settings (URL, token, interval, notifications, quick-links)
 tests/                   ← frozen API fixtures + goldens (expected model)
 .claude/plans/           ← per-version plans (plan.md, manual_tests.md, phase0_results.md)
 ```
@@ -88,11 +88,23 @@ to fill in the URL and the token.
 2. Generate an **API token** for it (Users → API tokens).
 3. In the plugin settings: fill in the **URL** of the JSON-RPC endpoint
    (`https://<zabbix>/api_jsonrpc.php`), paste the **token**, set the polling **interval**.
-   Tick "Unverified TLS certificate" only if the instance uses a self-signed certificate.
 
-auspex is **read-only**: the token needs no write permission. It is sent by curl in an
-`Authorization: Bearer` header (visible only to the current user in the process list —
-acceptable for a read-only token; hardening remains possible).
+auspex is **read-only**: the token needs no write permission. The plugin issues the HTTP
+calls itself (`XMLHttpRequest`) and passes the token in an `Authorization: Bearer` header,
+so it never reaches a command line, a process list or a file on disk.
+
+### Self-signed certificate
+
+The TLS certificate of the instance must be trusted by the **system store**: QML offers no
+way to skip verification, and auspex does not pretend otherwise. For an internal CA, add it
+to the store — on NixOS:
+
+```nix
+security.pki.certificateFiles = [ ./zabbix-ca.pem ];
+```
+
+Until then the cockpit reports `Zabbix injoignable — réseau ou certificat TLS non approuvé`
+(a failed request tells the plugin nothing more precise than "it did not go through").
 
 ## Release
 

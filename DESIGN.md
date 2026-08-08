@@ -94,8 +94,11 @@ installé dans `~/.config/DankMaterialShell/plugins/Auspex/`. Il hérite du thè
 
 - `query` → `src/query/queries.js` : builders de corps JSON-RPC (`problem.get`,
   `trigger.get`, `host.get`…), fonctions pures. Exécutés par `src/view/Zabbix.qml`
-  (service : HTTP `POST` vers `api_jsonrpc.php`, header `Authorization: Bearer`, gestion
-  d'erreur/timeout).
+  (service : HTTP `POST` vers `api_jsonrpc.php` en `XMLHttpRequest`, header
+  `Authorization: Bearer`, gestion d'erreur/timeout). Le transport garde le token **dans le
+  processus** : il ne transite ni par une ligne de commande ni par un fichier. Corollaire :
+  le certificat TLS de l'instance doit être approuvé par le magasin système — QML n'offre
+  aucun moyen de sauter la vérification, et auspex n'en simule pas.
 - `model` → `src/model/problems.js` (`parseProblems`, `parseTriggers` = map
   triggerid→host, `joinProblems`, `worstSeverity`, `countsBySeverity`, `diffProblems`
   pour le delta) + `format.js` (`relativeTime`, `severityLabel`) — ces helpers de

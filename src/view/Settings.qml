@@ -1,5 +1,5 @@
 // Réglages du plugin (PluginSettings de DMS). Déclaratif : chaque *Setting auto-persiste
-// dans pluginData via son settingKey. Le widget (AuspexWidget) lit url / token / insecure /
+// dans pluginData via son settingKey. Le widget (AuspexWidget) lit url / token /
 // pollSeconds et les injecte dans le service Zabbix.
 import QtQuick
 import qs.Common
@@ -21,7 +21,7 @@ PluginSettings {
     StringSetting {
         settingKey: "url"
         label: "URL de l'API Zabbix"
-        description: "Endpoint JSON-RPC de l'instance Zabbix 7.0. Ex. « https://zabbix.example.com/api_jsonrpc.php »."
+        description: "Endpoint JSON-RPC de l'instance Zabbix 7.0. Ex. « https://zabbix.example.com/api_jsonrpc.php ». En HTTPS, le certificat doit être approuvé par le magasin système (auto-signé : y ajouter la CA)."
         placeholder: "https://zabbix.example.com/api_jsonrpc.php"
         defaultValue: ""
     }
@@ -43,13 +43,6 @@ PluginSettings {
         maximum: 300
         unit: "s"
         leftIcon: "schedule"
-    }
-
-    ToggleSetting {
-        settingKey: "insecure"
-        label: "Certificat TLS non vérifié"
-        description: "À activer uniquement si l'instance Zabbix présente un certificat auto-signé (curl -k)."
-        defaultValue: false
     }
 
     ToggleSetting {
