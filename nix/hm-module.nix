@@ -24,8 +24,9 @@ in {
     # Le plugin est découvert par DMS dans ~/.config/DankMaterialShell/plugins/.
     xdg.configFile."DankMaterialShell/plugins/Auspex".source = plugin;
 
-    # Deps runtime : curl (poll de l'API Zabbix), notify-send (notifications desktop,
-    # fourni par libnotify) et xdg-open (quick-links web, fourni par xdg-utils).
-    home.packages = [pkgs.curl pkgs.libnotify pkgs.xdg-utils];
+    # Deps runtime : notify-send (notifications desktop, fourni par libnotify) et xdg-open
+    # (quick-links web, fourni par xdg-utils). Le poll de l'API n'appelle aucun binaire :
+    # le plugin fait le HTTP lui-même (XMLHttpRequest).
+    home.packages = [pkgs.libnotify pkgs.xdg-utils];
   };
 }

@@ -80,6 +80,16 @@ def make_handler(scenario):
             self.wfile.write(body)
 
         def do_POST(self):
+            # Même contrôle que api_jsonrpc.php : le type est comparé après découpe sur « ; ».
+            # Qt colle « ;charset=UTF-8 » au Content-Type de XMLHttpRequest sans qu'on puisse
+            # l'en empêcher — le mock refuse comme Zabbix pour qu'un écart se voie ici, en dev,
+            # et pas contre l'instance de prod.
+            ctype = self.headers.get("Content-Type", "").split(";")[0].strip().lower()
+            if ctype not in ("application/json", "application/json-rpc", "application/jsonrequest"):
+                sys.stderr.write("zabbix-mock: Content-Type refusé : %r\n" % self.headers.get("Content-Type", ""))
+                self._send({"jsonrpc": "2.0", "error": {"code": -32700, "message": "Unsupported content type."}, "id": None}, code=415)
+                return
+
             length = int(self.headers.get("Content-Length", 0))
             raw = self.rfile.read(length) if length else b"{}"
             try:

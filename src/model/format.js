@@ -124,6 +124,26 @@ function notificationUrgency(added) {
     return "normal";
 }
 
+// Message d'échec d'un appel HTTP, à afficher dans la bannière du cockpit. Pur.
+//
+// XMLHttpRequest ne rapporte qu'un `status` : tout échec réseau (connexion refusée, hôte
+// injoignable, poignée de main TLS rejetée) sort indistinctement en `status = 0`, sans
+// détail exploitable. On ne peut donc pas nommer la cause — seulement la restreindre : sur
+// une URL `https://`, un certificat non approuvé est une hypothèse assez probable (et assez
+// coûteuse à diagnostiquer à l'aveugle) pour être citée, à côté du réseau. Le message dit
+// cette incertitude au lieu d'affirmer un diagnostic faux une fois sur deux.
+//
+//   kind : "timeout" (watchdog du service) | "unreachable" (status 0) | "http" (status ≠ 200)
+function networkErrorMessage(kind, url, status) {
+    if (kind === "timeout")
+        return "Zabbix injoignable (délai dépassé)";
+    if (kind === "http")
+        return "Réponse HTTP " + status;
+    if (String(url || "").indexOf("https:") === 0)
+        return "Zabbix injoignable — réseau ou certificat TLS non approuvé (ajouter la CA au magasin système)";
+    return "Zabbix injoignable (connexion refusée)";
+}
+
 // URL de base du frontend Zabbix, dérivée de l'URL d'API : retire le suffixe
 // /api_jsonrpc.php (et un éventuel / final). Pur. Alimente le placeholder {base}.
 function frontendBase(apiUrl) {

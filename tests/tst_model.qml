@@ -63,6 +63,18 @@ TestCase {
         compare(Format.notificationUrgency([]), "normal");
     }
 
+    function test_networkErrorMessage() {
+        // Le watchdog et un code HTTP nomment leur cause ; l'URL n'y change rien.
+        compare(Format.networkErrorMessage("timeout", "https://z.example.com/api_jsonrpc.php"), "Zabbix injoignable (délai dépassé)");
+        compare(Format.networkErrorMessage("http", "http://z.example.com/api_jsonrpc.php", 502), "Réponse HTTP 502");
+        // status 0 : la cause est indiscernable, seul le schéma d'URL restreint l'hypothèse.
+        verify(Format.networkErrorMessage("unreachable", "https://z.example.com/api_jsonrpc.php").indexOf("certificat TLS") !== -1);
+        compare(Format.networkErrorMessage("unreachable", "http://127.0.0.1:8384/api_jsonrpc.php"), "Zabbix injoignable (connexion refusée)");
+        // Pas de TLS sans https : ni sur une URL vide, ni sur un hôte qui commence par « https ».
+        compare(Format.networkErrorMessage("unreachable", ""), "Zabbix injoignable (connexion refusée)");
+        compare(Format.networkErrorMessage("unreachable", "http://httpsecure.example.com/api_jsonrpc.php"), "Zabbix injoignable (connexion refusée)");
+    }
+
     function test_frontendBase() {
         compare(Format.frontendBase("https://z.example.com/api_jsonrpc.php"), "https://z.example.com");
         compare(Format.frontendBase("https://z.example.com/api_jsonrpc.php/"), "https://z.example.com");

@@ -15,7 +15,6 @@ PluginComponent {
     // Réglages lus de pluginData (cf. Settings.qml).
     readonly property string cfgUrl: (pluginData && pluginData.url) ? pluginData.url : ""
     readonly property string cfgToken: (pluginData && pluginData.token) ? pluginData.token : ""
-    readonly property bool cfgInsecure: (pluginData && pluginData.insecure) ? pluginData.insecure : false
     readonly property int cfgIntervalMs: (pluginData && pluginData.pollSeconds > 0) ? pluginData.pollSeconds * 1000 : 30000
     // Notifications : activation (défaut on) + seuil de sévérité mini (0 = toutes).
     readonly property bool cfgNotifyEnabled: (pluginData && pluginData.notifyEnabled !== undefined) ? pluginData.notifyEnabled : true
@@ -39,7 +38,6 @@ PluginComponent {
         id: svc
         url: root.cfgUrl
         token: root.cfgToken
-        insecure: root.cfgInsecure
         intervalMs: root.cfgIntervalMs
     }
 

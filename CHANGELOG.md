@@ -6,6 +6,26 @@ versions en [SemVer]. Généré depuis les Conventional Commits par git-cliff.
 [Keep a Changelog]: https://keepachangelog.com/fr/1.1.0/
 [SemVer]: https://semver.org/lang/fr/
 
+## [Non publié]
+
+### Fonctionnalités
+
+- **model** : Message d'erreur réseau selon le schéma d'URL
+
+### Refactorisations
+
+- **RUPTURE** — **view** : Poll HTTP via XMLHttpRequest — le réglage « Certificat TLS non vérifié » disparaît. QML n'offre aucun moyen de sauter la vérification (Qt refuse tout certificat hors magasin système et n'honore pas SSL_CERT_FILE) ; garder le toggle en le rendant inopérant aurait été un mensonge d'interface. Une instance en auto-signé demande désormais sa CA dans le magasin système (NixOS : security.pki.certificateFiles), cf. README.
+
+### Documentation
+
+- Plan v0.6.0 (poll HTTP via XMLHttpRequest)
+- Passer le README en anglais
+
+### Divers
+
+- **nix** : Retirer curl des dépendances runtime
+- **dev** : Le mock valide le Content-Type comme Zabbix
+
 ## [0.5.0] - 2026-07-18
 
 ### Fonctionnalités
@@ -20,6 +40,10 @@ versions en [SemVer]. Généré depuis les Conventional Commits par git-cliff.
 
 - Quick-links web (v0.5.0)
 - Plan v0.5.0 (quick-links web)
+
+### Divers
+
+- Préparer la release v0.5.0 (version + changelog)
 
 ## [0.4.0] - 2026-07-18
 

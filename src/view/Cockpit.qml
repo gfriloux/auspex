@@ -413,7 +413,9 @@ PopoutComponent {
                 StyledText {
                     anchors.verticalCenter: parent.verticalCenter
                     width: bannerRow.width - Theme.iconSize - Theme.spacingS
-                    text: cockpit.isUnauthorized ? "Vérifier l'API token (utilisateur read-only)." : "Zabbix injoignable — nouvelle tentative bientôt. Affichage du dernier état connu."
+                    // Le message du service nomme la cause (délai, connexion, certificat TLS,
+                    // code HTTP) ; le texte générique ne sert que s'il est vide.
+                    text: cockpit.isUnauthorized ? "Vérifier l'API token (utilisateur read-only)." : (cockpit.service && cockpit.service.errorMessage ? cockpit.service.errorMessage + " Affichage du dernier état connu." : "Zabbix injoignable — nouvelle tentative bientôt. Affichage du dernier état connu.")
                     wrapMode: Text.WordWrap
                     font.pixelSize: Theme.fontSizeSmall
                     color: "#cdd6f4"
