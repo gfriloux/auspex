@@ -61,16 +61,21 @@ function parseTriggers(res) {
 }
 
 // Joint les problèmes partiels avec la map de hosts → modèle de domaine final.
-// triggerid absent de la map → host/hostid "" (best-effort : ne casse jamais l'affichage).
+// triggerid absent de la map (trigger désactivé ou supprimé : trigger.get est appelé
+// avec monitored:true, cf. query) → le problème est ÉCARTÉ. Avant v0.6.1 il était gardé
+// avec host/hostid "" (« best-effort ») ; or un trigger désactivé ne se résout jamais
+// côté Zabbix, donc ces problèmes s'accumulaient indéfiniment dans l'affichage (#8).
 // triggerid + hostid sont exposés pour les quick-links (deep-links frontend Zabbix).
 function joinProblems(problems, hostMap) {
-    return problems.map(function (p) {
+    return problems.filter(function (p) {
+        return hostMap[p.triggerid] !== undefined;
+    }).map(function (p) {
         var h = hostMap[p.triggerid];
         return {
             "eventid": p.eventid,
             "triggerid": p.triggerid,
-            "host": h !== undefined ? h.name : "",
-            "hostid": h !== undefined ? h.hostid : "",
+            "host": h.name,
+            "hostid": h.hostid,
             "trigger": p.trigger,
             "severity": p.severity,
             "since": p.since,

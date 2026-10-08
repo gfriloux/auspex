@@ -20,16 +20,5 @@
     "since": 1700000200,
     "acknowledged": false,
     "suppressed": true
-  },
-  {
-    "eventid": "10",
-    "triggerid": "199",
-    "host": "",
-    "hostid": "",
-    "trigger": "Orphan trigger problem",
-    "severity": 2,
-    "since": 1700000100,
-    "acknowledged": false,
-    "suppressed": false
   }
 ]
