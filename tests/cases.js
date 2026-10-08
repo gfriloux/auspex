@@ -32,6 +32,10 @@ var cases = [
         "transform": joinCase
     },
     {
+        "name": "problems-trigger-disabled",
+        "transform": joinCase
+    },
+    {
         "name": "delta-appeared",
         "transform": deltaCase
     },
