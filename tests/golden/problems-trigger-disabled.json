@@ -1,0 +1,13 @@
+[
+  {
+    "eventid": "41",
+    "triggerid": "203",
+    "host": "web02",
+    "hostid": "10203",
+    "trigger": "High load on web02",
+    "severity": 4,
+    "since": 1700000400,
+    "acknowledged": false,
+    "suppressed": false
+  }
+]

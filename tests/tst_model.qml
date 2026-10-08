@@ -150,8 +150,9 @@ TestCase {
         compare(m["6"].hostid, "");
     }
 
-    // Un triggerid inconnu de la map ne casse pas la jointure : host "".
-    function test_joinProblems_missingHost() {
+    // Un triggerid inconnu de la map (trigger désactivé/supprimé, cf. #8) est écarté,
+    // plutôt que gardé avec un host vide (ancien comportement « best-effort »).
+    function test_joinProblems_dropsMissingHost() {
         var joined = Model.joinProblems([{
                     "eventid": "1",
                     "triggerid": "404",
@@ -161,9 +162,29 @@ TestCase {
                     "acknowledged": false,
                     "suppressed": false
                 }], {});
-        compare(joined[0].host, "");
-        compare(joined[0].hostid, ""); // host inconnu → hostid ""
-        compare(joined[0].triggerid, "404"); // triggerid conservé
+        compare(joined.length, 0);
+    }
+
+    // Un triggerid connu de la map est joint normalement (pas de régression).
+    function test_joinProblems_keepsKnownHost() {
+        var joined = Model.joinProblems([{
+                    "eventid": "1",
+                    "triggerid": "5",
+                    "trigger": "T",
+                    "severity": 2,
+                    "since": 1,
+                    "acknowledged": false,
+                    "suppressed": false
+                }], {
+            "5": {
+                "name": "web01",
+                "hostid": "1"
+            }
+        });
+        compare(joined.length, 1);
+        compare(joined[0].host, "web01");
+        compare(joined[0].hostid, "1");
+        compare(joined[0].triggerid, "5");
     }
 
     function test_worstSeverity() {

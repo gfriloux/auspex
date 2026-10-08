@@ -38,12 +38,18 @@ function problemGet(opts) {
 // trigger.get — résout le host d'un problème. problem.get ne joint pas le host
 // (pas de selectHosts) : on récupère les objectid (= triggerids) des problèmes puis on
 // demande leurs hosts ici. La jointure triggerid→host se fait dans le model.
+// `monitored: true` exclut les triggers désactivés (ou dont le host est désactivé) de la
+// réponse : problem.get, lui, ne sait pas filtrer là-dessus et continue de renvoyer les
+// problèmes des triggers désactivés indéfiniment (ils ne se résolvent jamais côté Zabbix).
+// Ce triggerid absent de la réponse est ensuite traité par joinProblems (cf. model) comme
+// un signal « ne plus afficher ce problème » (cf. issue #8).
 function triggerGetWithHosts(triggerids, opts) {
     opts = opts || {};
     var params = {
         "output": ["triggerid"],
         "selectHosts": ["hostid", "name"],
-        "triggerids": triggerids
+        "triggerids": triggerids,
+        "monitored": true
     };
     return envelope("trigger.get", params, opts.id);
 }
