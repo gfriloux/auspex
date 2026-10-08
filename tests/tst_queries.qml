@@ -53,7 +53,8 @@ TestCase {
             "params": {
                 "output": ["triggerid"],
                 "selectHosts": ["hostid", "name"],
-                "triggerids": ["101", "102"]
+                "triggerids": ["101", "102"],
+                "monitored": true
             },
             "id": 1
         });
